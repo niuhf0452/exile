@@ -40,3 +40,6 @@ out/
 
 # visual studio code
 .vscode
+
+# kotlintest
+.kotlintest
