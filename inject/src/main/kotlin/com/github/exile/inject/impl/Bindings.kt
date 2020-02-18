@@ -1,6 +1,6 @@
-package com.github.exile.core.impl
+package com.github.exile.inject.impl
 
-import com.github.exile.core.Injector
+import com.github.exile.inject.Injector
 
 object Bindings {
     class InstanceBinding(

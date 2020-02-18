@@ -1,6 +1,6 @@
-package com.github.exile.core.impl
+package com.github.exile.inject.impl
 
-import com.github.exile.core.ClassScanner
+import com.github.exile.inject.ClassScanner
 import kotlin.reflect.KClass
 
 class ClassgraphScanner(packageNames: List<String>) : ClassScanner {

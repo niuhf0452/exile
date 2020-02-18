@@ -1,6 +1,6 @@
-package com.github.exile.core.impl
+package com.github.exile.inject.impl
 
-import com.github.exile.core.Injector
+import com.github.exile.inject.Injector
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KType
@@ -46,9 +46,9 @@ class InjectorImpl(
         }
 
         fun resolve(): Map<Injector.Key, HolderBinding> {
-            val pendings = mutableListOf<Pair<Injector.Key, HolderBinding>>()
+            val pendingList = mutableListOf<Pair<Injector.Key, HolderBinding>>()
             do {
-                pendings.forEach { (key, holder) ->
+                pendingList.forEach { (key, holder) ->
                     backtrace.push(key)
                     val bc = BindingContext(this, key)
                     var binding: Injector.Binding = Injector.EmptyBinding(key)
@@ -58,13 +58,13 @@ class InjectorImpl(
                     holder.binding = binding
                     backtrace.pop()
                 }
-                pendings.clear()
+                pendingList.clear()
                 dependencies.forEach { (key, binding) ->
                     if (binding.binding == PendingBinding) {
-                        pendings.add(key to binding)
+                        pendingList.add(key to binding)
                     }
                 }
-            } while (pendings.isNotEmpty())
+            } while (pendingList.isNotEmpty())
             return dependencies
         }
     }
@@ -92,17 +92,17 @@ class InjectorImpl(
             throw IllegalStateException("HolderBinding is not ready")
         }
     }
-}
 
-class InjectorBuilder : Injector.Builder {
-    private val binders = mutableListOf<Injector.Binder>()
+    class Builder : Injector.Builder {
+        private val binders = mutableListOf<Injector.Binder>()
 
-    override fun addBinder(binder: Injector.Binder): Injector.Builder {
-        binders.add(binder)
-        return this
-    }
+        override fun addBinder(binder: Injector.Binder): Injector.Builder {
+            binders.add(binder)
+            return this
+        }
 
-    override fun build(): Injector {
-        return InjectorImpl(binders)
+        override fun build(): Injector {
+            return InjectorImpl(binders)
+        }
     }
 }

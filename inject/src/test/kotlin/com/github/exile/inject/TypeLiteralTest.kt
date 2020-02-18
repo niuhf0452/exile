@@ -1,4 +1,4 @@
-package com.github.exile.core
+package com.github.exile.inject
 
 import io.kotlintest.shouldBe
 import io.kotlintest.shouldThrow

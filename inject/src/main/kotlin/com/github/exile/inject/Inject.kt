@@ -1,8 +1,8 @@
-package com.github.exile.core
+package com.github.exile.inject
 
-import com.github.exile.core.impl.AutowireBinder
-import com.github.exile.core.impl.ClassgraphScanner
-import com.github.exile.core.impl.InjectorBuilder
+import com.github.exile.inject.impl.AutowireBinder
+import com.github.exile.inject.impl.ClassgraphScanner
+import com.github.exile.inject.impl.InjectorImpl
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
 import kotlin.reflect.KTypeParameter
@@ -19,6 +19,7 @@ interface Injector {
     fun getBinding(type: KType, qualifier: String = ""): Binding
 
     fun <A : Any> getInstance(cls: KClass<A>, qualifier: String = ""): A {
+        @Suppress("UNCHECKED_CAST")
         return getBinding(cls.starProjectedType, qualifier).getInstance() as A
     }
 
@@ -62,7 +63,7 @@ interface Injector {
 
     companion object {
         fun builder(): Builder {
-            return InjectorBuilder()
+            return InjectorImpl.Builder()
         }
 
         fun createInjector(): Injector {
@@ -76,7 +77,7 @@ interface Injector {
 /**
  * Autowire is used to decorate the implementation class of a injectable interface.
  * A Injector can bind the implementation class to the interface automatically,
- * if [scan is enabled][Injector.Builder.enableScan].
+ * if [AutowireBinder] is enabled.
  *
  * @param value Specify the interface classes bind to.
  *              If it's empty, Injector will search all the interfaces the class implemented.
@@ -96,7 +97,7 @@ annotation class Autowire(val value: Array<KClass<*>> = [])
  *
  * ```kotlin
  *
- * inerface CacheStore
+ * interface CacheStore
  *
  * @Autowire
  * @Qualifier("redis")
@@ -108,7 +109,7 @@ annotation class Autowire(val value: Array<KClass<*>> = [])
  *
  * @Test
  * fun test() {
- *     assert(injector.getInstance(CacheStore::class, "reids") is RedisStore)
+ *     assert(injector.getInstance(CacheStore::class, "redis") is RedisStore)
  *     assert(injector.getInstance(CacheStore::class, "memcached") is MemcachedStore)
  * }
  * ```
@@ -129,7 +130,7 @@ annotation class Qualifier(val value: String)
  * assert(type.classifier == String::class)
  * ```
  *
- * @since1 1.0
+ * @since 1.0
  */
 abstract class TypeLiteral<A> {
     val type: KType

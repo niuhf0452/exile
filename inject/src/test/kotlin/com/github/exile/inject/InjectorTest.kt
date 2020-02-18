@@ -1,6 +1,6 @@
-package com.github.exile.core
+package com.github.exile.inject
 
-import com.github.exile.core.impl.StaticBinder
+import com.github.exile.inject.impl.StaticBinder
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.FeatureSpec
 
