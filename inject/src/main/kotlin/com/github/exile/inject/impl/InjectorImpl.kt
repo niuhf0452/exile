@@ -1,108 +1,56 @@
 package com.github.exile.inject.impl
 
 import com.github.exile.inject.Injector
+import com.github.exile.inject.TypeKey
+import com.github.exile.inject.impl.Bindings.CompositeBindingSet
+import com.github.exile.inject.impl.Bindings.EmptyBindingSet
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KType
-import kotlin.reflect.KTypeParameter
 
 class InjectorImpl(
         private val binders: List<Injector.Binder>
 ) : Injector {
-    private val bindingCache = ConcurrentHashMap<Injector.Key, HolderBinding>()
+    private val bindingCache = ConcurrentHashMap<TypeKey, Injector.BindingSet>()
 
-    override fun getBinding(type: KType, qualifier: String): Injector.Binding {
-        if (type.classifier == null) {
-            throw IllegalStateException("Can't inject intersection type: $type")
-        }
-        if (type.classifier is KTypeParameter) {
-            throw IllegalStateException("Can't inject parameter type: $type")
-        }
-        val key = Injector.Key(type, qualifier)
+    override fun getBindings(key: TypeKey): Injector.BindingSet {
         return bindingCache[key] ?: synchronized(this) {
-            bindingCache[key] ?: createBinding(key)
+            BindingContext().getDependency(key)
         }
     }
 
-    private fun createBinding(key: Injector.Key): HolderBinding {
-        val dc = DependencyContext()
-        val holder = dc.addDependency(key)
-        bindingCache.putAll(dc.resolve())
-        return holder
-    }
+    private inner class BindingContext : Injector.BindingContext {
+        private val backtrace = Stack<TypeKey>()
 
-    private inner class DependencyContext {
-        private val backtrace = Stack<Injector.Key>()
-        private val dependencies = mutableMapOf<Injector.Key, HolderBinding>()
+        override fun emptyBindingSet(): Injector.BindingSet {
+            return EmptyBindingSet
+        }
 
-        fun addDependency(key: Injector.Key): HolderBinding {
+        override fun getDependency(type: KType): Injector.BindingSet {
+            return getDependency(TypeKey(type))
+        }
+
+        override fun getDependency(key: TypeKey): Injector.BindingSet {
+            // Don't use computeIfAbsent(), because the method will reenter.
+            return bindingCache[key] ?: createDependency(key).also { bindingCache[key] = it }
+        }
+
+        private fun createDependency(key: TypeKey): Injector.BindingSet {
             if (backtrace.contains(key)) {
-                throw IllegalStateException(backtrace.joinToString("\n  -> ",
-                        "Can't create cycle dependent binding:\n  -> "))
+                throw IllegalStateException(backtrace.joinToString(
+                        prefix = "Cycle dependent:\n  ->",
+                        separator = "\n  ->"))
             }
-            return dependencies.computeIfAbsent(key) {
-                HolderBinding()
+            val builder = CompositeBindingSet.Builder()
+            backtrace.push(key)
+            try {
+                binders.forEach { binder ->
+                    builder.add(binder.bind(key, this))
+                }
+            } finally {
+                backtrace.pop()
             }
-        }
-
-        fun resolve(): Map<Injector.Key, HolderBinding> {
-            val pendingList = mutableListOf<Pair<Injector.Key, HolderBinding>>()
-            do {
-                pendingList.forEach { (key, holder) ->
-                    backtrace.push(key)
-                    val bc = BindingContext(this, key)
-                    var binding: Injector.Binding = Injector.EmptyBinding(key)
-                    binding = binders.fold(binding) { upstream, binder ->
-                        binder.getBinding(bc, upstream)
-                    }
-                    holder.binding = binding
-                    backtrace.pop()
-                }
-                pendingList.clear()
-                dependencies.forEach { (key, binding) ->
-                    if (binding.binding == PendingBinding) {
-                        pendingList.add(key to binding)
-                    }
-                }
-            } while (pendingList.isNotEmpty())
-            return dependencies
-        }
-    }
-
-    private inner class BindingContext(
-            private val dependencyContext: DependencyContext,
-            override val key: Injector.Key
-    ) : Injector.BindingContext {
-        override fun getDependency(type: KType, qualifier: String): Injector.Binding {
-            val key = Injector.Key(type, qualifier)
-            return bindingCache[key] ?: dependencyContext.addDependency(key)
-        }
-    }
-
-    private class HolderBinding : Injector.Binding {
-        var binding: Injector.Binding = PendingBinding
-
-        override fun getInstance(): Any? {
-            return binding.getInstance()
-        }
-    }
-
-    object PendingBinding : Injector.Binding {
-        override fun getInstance(): Any? {
-            throw IllegalStateException("HolderBinding is not ready")
-        }
-    }
-
-    class Builder : Injector.Builder {
-        private val binders = mutableListOf<Injector.Binder>()
-
-        override fun addBinder(binder: Injector.Binder): Injector.Builder {
-            binders.add(binder)
-            return this
-        }
-
-        override fun build(): Injector {
-            return InjectorImpl(binders)
+            return builder.build()
         }
     }
 }
