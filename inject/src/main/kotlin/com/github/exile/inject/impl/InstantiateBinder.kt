@@ -3,11 +3,6 @@ package com.github.exile.inject.impl
 import com.github.exile.inject.Inject
 import com.github.exile.inject.Injector
 import com.github.exile.inject.TypeKey
-import com.github.exile.inject.getSingle
-import com.github.exile.inject.impl.Bindings.InstanceBinding
-import com.github.exile.inject.impl.Bindings.ListBindingSet
-import com.github.exile.inject.impl.Bindings.ProviderBinding
-import com.github.exile.inject.impl.Bindings.getQualifiers
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KType
@@ -16,41 +11,51 @@ import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.primaryConstructor
 
 class InstantiateBinder : Injector.Binder {
-    override fun bind(key: TypeKey, context: Injector.BindingContext): Injector.BindingSet {
+    override fun bind(key: TypeKey, context: Injector.BindingContext) {
         val cls = key.classifier
-        if (cls.isAbstract) {
-            return context.emptyBindingSet()
+        if (!cls.isAbstract) {
+            val instance = cls.objectInstance
+            if (instance != null) {
+                context.bindToInstance(key, cls.getQualifiers(), instance)
+            } else {
+                val constructor = findConstructor(cls)
+                if (constructor != null) {
+                    val factory = makeInstanceFactory(constructor, key, context)
+                    context.bindToProvider(key, cls.getQualifiers(), factory)
+                }
+            }
         }
-        cls.objectInstance?.let { instance ->
-            return ListBindingSet(listOf(InstanceBinding(key, cls.getQualifiers(), instance)))
-        }
-        val constructor = findConstructor(cls)
-                ?: return context.emptyBindingSet()
+    }
+
+    /**
+     * Create a instance factory which calls the constructor and inject parameters.
+     */
+    private fun makeInstanceFactory(constructor: KFunction<Any>, key: TypeKey, context: Injector.BindingContext): () -> Any {
         if (constructor.parameters.isEmpty()) {
-            return ListBindingSet(listOf(ProviderBinding(key, cls.getQualifiers()) {
+            return {
                 constructor.call()
-            }))
+            }
         }
         val pbs = constructor.parameters.map { p ->
-            context.getDependency(resolveType(p.type, key))
+            context.getBindings(resolveType(p.type, key))
                     .getSingle(p.getQualifiers())
         }
-        return ListBindingSet(listOf(ProviderBinding(key, cls.getQualifiers()) {
+        return {
             val params = Array(pbs.size) { i ->
                 pbs[i].getInstance()
             }
             constructor.call(*params)
-        }))
+        }
     }
 
     private fun findConstructor(cls: KClass<*>): KFunction<Any>? {
-        if (cls.findAnnotation<Inject>() != null) {
-            return cls.primaryConstructor
-        }
         cls.constructors.forEach { c ->
             if (c.findAnnotation<Inject>() != null) {
                 return c
             }
+        }
+        if (cls.findAnnotation<Inject>() != null) {
+            return cls.primaryConstructor
         }
         return null
     }
