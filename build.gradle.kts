@@ -31,17 +31,10 @@ sonarqube {
     }
 }
 
-tasks.jacocoTestReport {
-    reports {
-        xml.isEnabled = true
-        csv.isEnabled = false
-        html.destination = file("${buildDir}/jacocoHtml")
-    }
-}
-
 subprojects {
     apply(plugin = "java-library")
     apply(plugin = "org.jetbrains.kotlin.jvm")
+    apply(plugin = "jacoco")
 
     repositories {
         mavenCentral()
@@ -60,6 +53,14 @@ subprojects {
         kotlinOptions.jvmTarget = "11"
         kotlinOptions.apiVersion = "1.3"
         kotlinOptions.languageVersion = "1.3"
+    }
+
+    tasks.jacocoTestReport {
+        reports {
+            xml.isEnabled = true
+            csv.isEnabled = false
+            html.destination = file("${buildDir}/jacocoHtml")
+        }
     }
 
     dependencies {
