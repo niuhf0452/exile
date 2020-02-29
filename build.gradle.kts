@@ -5,6 +5,7 @@ plugins {
     base
     idea
     kotlin("jvm") version Vers.kotlin
+    id("org.sonarqube") version "2.8"
 }
 
 repositories {
@@ -18,6 +19,13 @@ idea {
     }
     module {
         isDownloadSources = true
+    }
+}
+
+sonarqube {
+    properties {
+        property("sonar.projectName", "exile")
+        property("sonar.projectKey", "com.github.exile")
     }
 }
 
