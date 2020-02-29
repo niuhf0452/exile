@@ -26,6 +26,7 @@ sonarqube {
     properties {
         property("sonar.projectName", "exile")
         property("sonar.projectKey", "com.github.exile")
+        property("sonar.host.url", "https://sonarcloud.io")
     }
 }
 

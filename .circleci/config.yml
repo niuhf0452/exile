@@ -27,9 +27,10 @@ jobs:
       - run:
           name: Generate SonarQube report
           command: |
-            ./gradlew sonarqube
+            ./gradlew build sonarqube
 workflows:
   version: 2
   workflow:
     jobs:
-      - build
+      - build:
+          context: SonarCloud
