@@ -9,10 +9,20 @@ class ServiceLoaderBinder : Injector.Binder {
         val javaClass = key.classifier.java
         if (javaClass.isInterface && key.arguments.isEmpty()) {
             ServiceLoader.load(javaClass).stream().forEach { provider ->
-                context.bindToProvider(key, emptyList()) {
-                    provider.get()
-                }
+                context.bindToProvider(key, emptyList(), ServiceProvider(provider))
             }
+        }
+    }
+
+    private class ServiceProvider(
+            private val provider: ServiceLoader.Provider<*>
+    ) : Injector.Provider {
+        override fun getInstance(): Any {
+            return provider.get()
+        }
+
+        override fun toString(): String {
+            return "ServiceLoader(${provider.type()})"
         }
     }
 }

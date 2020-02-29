@@ -1,10 +1,13 @@
 package com.github.exile.inject.impl
 
+import com.github.exile.inject.Excludes
 import com.github.exile.inject.Inject
 import com.github.exile.inject.Injector
 import com.github.exile.inject.TypeKey
 import java.io.Closeable
+import kotlin.reflect.KClass
 import kotlin.reflect.full.allSupertypes
+import kotlin.reflect.full.findAnnotation
 
 /**
  * AutowireBinder is implementation of auto wire.
@@ -20,10 +23,11 @@ class AutowireBinder(
         private val scanner: Injector.Scanner
 ) : Injector.Binder, AutoCloseable {
     override fun bind(key: TypeKey, context: Injector.BindingContext) {
-        if (key.classifier.isAbstract) {
-            scanner.findByInterface(key.classifier).forEach { implClass ->
-                if (!implClass.isAbstract && implClass.typeParameters.isEmpty()) {
-                    val type = implClass.allSupertypes.find { it.classifier == key.classifier }
+        val cls = key.classifier
+        if (cls.isAbstract) {
+            scanner.findBySuperClass(cls).forEach { implClass ->
+                if (isAcceptable(implClass, cls)) {
+                    val type = implClass.allSupertypes.find { it.classifier == cls }
                             ?: throw IllegalStateException()
                     if (key == TypeKey(type)) {
                         context.bindToType(key, implClass.getQualifiers(), TypeKey(implClass))
@@ -37,5 +41,12 @@ class AutowireBinder(
         if (scanner is Closeable) {
             scanner.close()
         }
+    }
+
+    private fun isAcceptable(implClass: KClass<*>, cls: KClass<*>): Boolean {
+        val a = implClass.findAnnotation<Excludes>()
+        return !implClass.isAbstract
+                && implClass.typeParameters.isEmpty()
+                && (a == null || !a.value.contains(cls))
     }
 }

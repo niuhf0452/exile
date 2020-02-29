@@ -11,7 +11,7 @@ import io.kotlintest.specs.FunSpec
 import java.util.function.Consumer
 
 class InstantiateBinderTest : FunSpec({
-    val injector = Injector.builder().build()
+    val injector = Injector.builder().enableScope().build()
 
     test("A InstantiateBinder should create instance") {
         @Inject

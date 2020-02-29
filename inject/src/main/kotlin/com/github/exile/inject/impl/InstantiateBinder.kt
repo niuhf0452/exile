@@ -20,8 +20,8 @@ class InstantiateBinder : Injector.Binder {
             } else {
                 val constructor = findConstructor(cls)
                 if (constructor != null) {
-                    val factory = makeInstanceFactory(constructor, key, context)
-                    context.bindToProvider(key, cls.getQualifiers(), factory)
+                    val provider = makeProvider(constructor, key, context)
+                    context.bindToProvider(key, cls.getQualifiers(), provider)
                 }
             }
         }
@@ -30,22 +30,12 @@ class InstantiateBinder : Injector.Binder {
     /**
      * Create a instance factory which calls the constructor and inject parameters.
      */
-    private fun makeInstanceFactory(constructor: KFunction<Any>, key: TypeKey, context: Injector.BindingContext): () -> Any {
-        if (constructor.parameters.isEmpty()) {
-            return {
-                constructor.call()
-            }
-        }
+    private fun makeProvider(constructor: KFunction<Any>, key: TypeKey, context: Injector.BindingContext): Injector.Provider {
         val pbs = constructor.parameters.map { p ->
             context.getBindings(resolveType(p.type, key))
                     .getSingle(p.getQualifiers())
         }
-        return {
-            val params = Array(pbs.size) { i ->
-                pbs[i].getInstance()
-            }
-            constructor.call(*params)
-        }
+        return ConstructorProvider(constructor, pbs)
     }
 
     private fun findConstructor(cls: KClass<*>): KFunction<Any>? {
@@ -65,5 +55,25 @@ class InstantiateBinder : Injector.Binder {
                 ?: return TypeKey(t)
         val i = key.classifier.typeParameters.indexOf(p)
         return key.arguments[i]
+    }
+
+    private class ConstructorProvider(
+            private val constructor: KFunction<Any>,
+            private val pbs: List<Injector.Binding>
+    ) : Injector.Provider {
+        override fun getInstance(): Any {
+            return if (pbs.isEmpty()) {
+                constructor.call()
+            } else {
+                val params = Array(pbs.size) { i ->
+                    pbs[i].getInstance()
+                }
+                constructor.call(*params)
+            }
+        }
+
+        override fun toString(): String {
+            return "Constructor($constructor)"
+        }
     }
 }

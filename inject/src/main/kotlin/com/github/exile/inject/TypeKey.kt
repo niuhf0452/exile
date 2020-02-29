@@ -9,7 +9,7 @@ import kotlin.reflect.full.allSupertypes
 data class TypeKey(val classifier: KClass<*>, val arguments: List<TypeKey>) {
     init {
         if (classifier.typeParameters.size != arguments.size) {
-            throw IllegalArgumentException("Invalid number of type arguments")
+            throw IllegalArgumentException("Invalid number of type arguments: $classifier")
         }
     }
 

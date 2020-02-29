@@ -3,7 +3,8 @@
 package com.github.exile.inject
 
 import com.github.exile.inject.impl.AutowireBinder
-import com.github.exile.inject.impl.Injectors
+import com.github.exile.inject.impl.InjectorImpl
+import com.github.exile.inject.impl.SingletonScope
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
 import kotlin.reflect.KTypeParameter
@@ -17,7 +18,7 @@ import kotlin.reflect.full.primaryConstructor
  *
  * @since 1.0
  */
-interface Injector {
+interface Injector : AutoCloseable {
     /**
      * Get the bindings matched with the type.
      *
@@ -26,6 +27,15 @@ interface Injector {
      * @since 1.0
      */
     fun getBindings(key: TypeKey): BindingSet
+
+    /**
+     * Get all prepared bindings. Since the Injector could run in LAZY mode, this method might not return
+     * all bindings.
+     * This method is for debugging only.
+     *
+     * @since 1.0
+     */
+    fun preparedBindings(): List<Binding>
 
     /**
      * A collection of bindings of a certain type.
@@ -106,11 +116,15 @@ interface Injector {
     interface BindingContext {
         fun getBindings(key: TypeKey): BindingSet
 
-        fun bindToProvider(key: TypeKey, qualifiers: List<Annotation>, provider: () -> Any)
+        fun bindToProvider(key: TypeKey, qualifiers: List<Annotation>, provider: Provider)
 
         fun bindToInstance(key: TypeKey, qualifiers: List<Annotation>, instance: Any)
 
         fun bindToType(key: TypeKey, qualifiers: List<Annotation>, implType: TypeKey)
+    }
+
+    interface Provider {
+        fun getInstance(): Any
     }
 
     /**
@@ -144,7 +158,7 @@ interface Injector {
      * @since 1.0
      */
     interface Scanner {
-        fun findByInterface(cls: KClass<*>): Iterable<KClass<*>>
+        fun findBySuperClass(cls: KClass<*>): Iterable<KClass<*>>
 
         fun findByAnnotation(cls: KClass<out Annotation>): Iterable<KClass<*>>
     }
@@ -171,7 +185,7 @@ interface Injector {
          * Get a builder for building instance of [Injector].
          */
         fun builder(): InjectorBuilder {
-            return Injectors.Builder()
+            return InjectorImpl.Builder()
         }
     }
 }
@@ -273,6 +287,37 @@ annotation class Qualifier
 annotation class Named(val value: String)
 
 /**
+ * The ScopeQualifier is to annotate on a qualifier to hint the injected object should be cached in
+ * a certain scope.
+ *
+ * @see Singleton
+ * @since 1.0
+ */
+@MustBeDocumented
+@Target(AnnotationTarget.ANNOTATION_CLASS)
+@Retention(AnnotationRetention.RUNTIME)
+annotation class ScopeQualifier(val value: KClass<out Scope<*>>)
+
+/**
+ * Scope is responsible for container aware.
+ *
+ * In a scoped injection, instances are cached in the containers, each container is stand for a scope instance.
+ * Injector use Scope to find the container for the running context.
+ *
+ * So the method [getContainer] will be called for every injecting.
+ *
+ * @see Singleton
+ * @since 1.0
+ */
+interface Scope<A : Annotation> {
+    fun getContainer(): Container<A>
+
+    interface Container<A> {
+        fun getOrCreate(id: String, qualifier: A, provider: () -> Any): Any
+    }
+}
+
+/**
  * The Singleton annotation is a hint to injector that make it caches the instance injected,
  * so that the further injecting will reuse the cached instance.
  *
@@ -282,6 +327,7 @@ annotation class Named(val value: String)
 @MustBeDocumented
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.RUNTIME)
+@ScopeQualifier(SingletonScope::class)
 annotation class Singleton
 
 /**

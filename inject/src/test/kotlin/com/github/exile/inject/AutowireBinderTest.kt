@@ -14,6 +14,7 @@ class AutowireBinderTest : FunSpec({
     val injector = Injector.builder()
             .scanner(ClassgraphScanner(listOf(AutowireTestInterfaceA::class.java.packageName)))
             .enableAutowire()
+            .enableScope()
             .build()
 
     test("An AutowireBinder should inject instance of interface") {
@@ -70,6 +71,12 @@ class AutowireBinderTest : FunSpec({
     test("An AutowireBinder should NOT bind class without @Inject") {
         shouldThrow<IllegalStateException> {
             injector.getInstance(AutowireTestInterfaceI::class)
+        }
+    }
+
+    test("An AutowireBinder should NOT bind class to interface with @Excludes") {
+        shouldThrow<IllegalStateException> {
+            injector.getInstance(AutowireTestInterfaceJ::class)
         }
     }
 })

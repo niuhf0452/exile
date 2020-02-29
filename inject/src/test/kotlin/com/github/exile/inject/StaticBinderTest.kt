@@ -54,6 +54,7 @@ class StaticBinderTest : FunSpec({
                 c.bind(object : TypeLiteral<Supplier<TestRunnable>>() {}.type)
                         .toType(object : TypeLiteral<TestSupplier<TestRunnable>>() {}.typeKey)
             }
+            .enableScope()
             .build()
 
     test("A StaticBinder should bind to instance") {

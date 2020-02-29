@@ -1,9 +1,11 @@
 package com.github.exile.inject.autowire
 
+import com.github.exile.inject.Excludes
 import com.github.exile.inject.Inject
 import com.github.exile.inject.Named
 import com.github.exile.inject.Singleton
 
+@Inject
 interface AutowireTestInterfaceA
 interface AutowireTestInterfaceB
 interface AutowireTestInterfaceC
@@ -13,6 +15,7 @@ interface AutowireTestInterfaceF
 interface AutowireTestInterfaceG
 interface AutowireTestInterfaceH<A>
 interface AutowireTestInterfaceI
+interface AutowireTestInterfaceJ
 
 @Inject
 class TestClassA : AutowireTestInterfaceA
@@ -48,3 +51,7 @@ abstract class TestClassG : AutowireTestInterfaceG
 class TestClassH<A> : AutowireTestInterfaceH<A>
 
 class TestClassI : AutowireTestInterfaceI
+
+@Inject
+@Excludes(AutowireTestInterfaceJ::class)
+class TestClassJ : AutowireTestInterfaceJ

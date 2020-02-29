@@ -13,10 +13,13 @@ class ClassgraphScanner(
             .whitelistPackages(*packageNames.toTypedArray())
             .scan()
 
-    override fun findByInterface(cls: KClass<*>): Iterable<KClass<*>> {
-        return scanResult.getClassesImplementing(cls.qualifiedName)
-                .loadClasses()
-                .map { it.kotlin }
+    override fun findBySuperClass(cls: KClass<*>): Iterable<KClass<*>> {
+        val classList = if (cls.java.isInterface) {
+            scanResult.getClassesImplementing(cls.qualifiedName)
+        } else {
+            scanResult.getSubclasses(cls.qualifiedName)
+        }
+        return classList.loadClasses().map { it.kotlin }
     }
 
     override fun findByAnnotation(cls: KClass<out Annotation>): Iterable<KClass<*>> {

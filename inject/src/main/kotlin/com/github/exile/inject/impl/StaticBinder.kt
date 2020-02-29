@@ -60,7 +60,23 @@ class StaticBinder(config: (InjectorBuilder.Configurator) -> Unit) : Injector.Bi
         }
 
         override fun toProvider(qualifiers: List<Annotation>, provider: () -> Any) {
+            toProvider(qualifiers, ProviderAdapter(provider))
+        }
+
+        override fun toProvider(qualifiers: List<Annotation>, provider: Injector.Provider) {
             calls.add { c -> c.bindToProvider(key, qualifiers, provider) }
+        }
+    }
+
+    private class ProviderAdapter(
+            private val provider: () -> Any
+    ) : Injector.Provider {
+        override fun getInstance(): Any {
+            return provider()
+        }
+
+        override fun toString(): String {
+            return "ProviderAdapter($provider)"
         }
     }
 }
