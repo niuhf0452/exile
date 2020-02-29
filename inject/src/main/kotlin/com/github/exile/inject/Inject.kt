@@ -383,3 +383,7 @@ abstract class TypeLiteral<A> {
     val typeKey: TypeKey
         get() = TypeKey(type)
 }
+
+interface Provider<A> {
+    fun get(): A
+}

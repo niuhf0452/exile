@@ -2,6 +2,7 @@ package com.github.exile.inject
 
 import io.kotlintest.matchers.beInstanceOf
 import io.kotlintest.matchers.collections.shouldContain
+import io.kotlintest.matchers.types.shouldBeNull
 import io.kotlintest.matchers.types.shouldBeSameInstanceAs
 import io.kotlintest.matchers.types.shouldNotBeSameInstanceAs
 import io.kotlintest.should
@@ -85,6 +86,14 @@ class InstantiateBinderTest : FunSpec({
         val binding = injector.getBindings(TypeKey(TestObject::class)).getSingle()
         binding.qualifiers.size shouldBe 1
         binding.qualifiers shouldContain Qualifiers.qualifier(TestQualifier::class)
+    }
+
+    test("A InstantiateBinder should inject instance depends on nullable parameter") {
+        @Inject
+        class TestClass(val value: String?)
+
+        val a = injector.getInstance(TestClass::class)
+        a.value.shouldBeNull()
     }
 
     test("A InstantiateBinder should NOT create instance of abstract class") {

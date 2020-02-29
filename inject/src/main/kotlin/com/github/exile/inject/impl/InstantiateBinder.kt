@@ -30,12 +30,23 @@ class InstantiateBinder : Injector.Binder {
     /**
      * Create a instance factory which calls the constructor and inject parameters.
      */
-    private fun makeProvider(constructor: KFunction<Any>, key: TypeKey, context: Injector.BindingContext): Injector.Provider {
-        val pbs = constructor.parameters.map { p ->
-            context.getBindings(resolveType(p.type, key))
-                    .getSingle(p.getQualifiers())
+    private fun makeProvider(constructor: KFunction<Any>,
+                             key: TypeKey,
+                             context: Injector.BindingContext): Injector.Provider {
+        val params = constructor.parameters.map { p ->
+            val bindings = context.getBindings(resolveType(p.type, key)).getList(p.getQualifiers())
+            when (bindings.size) {
+                0 -> {
+                    if (!p.type.isMarkedNullable) {
+                        throw IllegalStateException("No binding for parameter: $p")
+                    }
+                    NullProvider
+                }
+                1 -> BindingProvider(bindings[0])
+                else -> throw IllegalStateException("Multiple bindings for parameter: $p")
+            }
         }
-        return ConstructorProvider(constructor, pbs)
+        return ConstructorProvider(constructor, params)
     }
 
     private fun findConstructor(cls: KClass<*>): KFunction<Any>? {
@@ -59,14 +70,14 @@ class InstantiateBinder : Injector.Binder {
 
     private class ConstructorProvider(
             private val constructor: KFunction<Any>,
-            private val pbs: List<Injector.Binding>
+            private val params: List<() -> Any?>
     ) : Injector.Provider {
         override fun getInstance(): Any {
-            return if (pbs.isEmpty()) {
+            return if (params.isEmpty()) {
                 constructor.call()
             } else {
-                val params = Array(pbs.size) { i ->
-                    pbs[i].getInstance()
+                val params = Array(params.size) { i ->
+                    params[i]()
                 }
                 constructor.call(*params)
             }
@@ -74,6 +85,20 @@ class InstantiateBinder : Injector.Binder {
 
         override fun toString(): String {
             return "Constructor($constructor)"
+        }
+    }
+
+    private object NullProvider : () -> Any? {
+        override fun invoke(): Any? {
+            return null
+        }
+    }
+
+    private class BindingProvider(
+            private val binding: Injector.Binding
+    ) : () -> Any? {
+        override fun invoke(): Any? {
+            return binding.getInstance()
         }
     }
 }
