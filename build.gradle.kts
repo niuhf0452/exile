@@ -24,6 +24,7 @@ idea {
 
 sonarqube {
     properties {
+        property("sonar.projectName", "exile")
         property("sonar.projectKey", "com.github.exile")
         property("sonar.organization", "niuhf0452")
         property("sonar.host.url", "https://sonarcloud.io")
