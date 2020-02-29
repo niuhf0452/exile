@@ -116,11 +116,11 @@ interface Injector : AutoCloseable {
     interface BindingContext {
         fun getBindings(key: TypeKey): BindingSet
 
-        fun bindToProvider(key: TypeKey, qualifiers: List<Annotation>, provider: Provider)
+        fun bindToProvider(qualifiers: List<Annotation>, provider: Provider)
 
-        fun bindToInstance(key: TypeKey, qualifiers: List<Annotation>, instance: Any)
+        fun bindToInstance(qualifiers: List<Annotation>, instance: Any)
 
-        fun bindToType(key: TypeKey, qualifiers: List<Annotation>, implType: TypeKey)
+        fun bindToType(qualifiers: List<Annotation>, implType: TypeKey)
     }
 
     interface Provider {
@@ -161,23 +161,6 @@ interface Injector : AutoCloseable {
         fun findBySuperClass(cls: KClass<*>): Iterable<KClass<*>>
 
         fun findByAnnotation(cls: KClass<out Annotation>): Iterable<KClass<*>>
-    }
-
-    enum class LoadingMode {
-        /**
-         * Load all bindings when instantiating [Injector], after that the internal state of injector is immutable,
-         * it doesn't lazy load bindings for new type.
-         */
-        EAGER,
-        /**
-         * Don't load binding util it's asked for injecting. The internal state of injector is mutable,
-         * so that it can always add bindings for new type.
-         */
-        LAZY,
-        /**
-         * It works like [LAZY] expect that a thread is started to load bindings when instantiating [Injector].
-         */
-        ASYNC
     }
 
     companion object {
@@ -282,8 +265,8 @@ annotation class Qualifier
  */
 @Qualifier
 @MustBeDocumented
-@Target(AnnotationTarget.CLASS, AnnotationTarget.VALUE_PARAMETER)
 @Retention(AnnotationRetention.RUNTIME)
+@Target(AnnotationTarget.CLASS, AnnotationTarget.VALUE_PARAMETER, AnnotationTarget.FUNCTION)
 annotation class Named(val value: String)
 
 /**
@@ -325,10 +308,21 @@ interface Scope<A : Annotation> {
  */
 @Qualifier
 @MustBeDocumented
-@Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.RUNTIME)
+@Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
 @ScopeQualifier(SingletonScope::class)
 annotation class Singleton
+
+/**
+ * Factory provides support of Spring style configuration.
+ *
+ * @since 1.0
+ */
+@Inject
+@MustBeDocumented
+@Retention(AnnotationRetention.RUNTIME)
+@Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
+annotation class Factory
 
 /**
  * This is a helper class for creating qualifier/annotation instances,

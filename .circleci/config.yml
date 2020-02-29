@@ -11,11 +11,11 @@ jobs:
       - restore_cache:
           key: v1-gradle-wrapper-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}
       - restore_cache:
-          key: v1-gradle-cache-{{ checksum "build.gradle" }}
+          key: v1-gradle-cache-{{ checksum "build.gradle.kts" }}
       - run:
           name: Run tests in parallel
           command: |
-            ./gradlew test --parallel
+            ./gradlew build --parallel
       - save_cache:
           paths:
             - ~/.gradle/wrapper
@@ -23,11 +23,11 @@ jobs:
       - save_cache:
           paths:
             - ~/.gradle/caches
-          key: v1-gradle-cache-{{ checksum "build.gradle" }}
+          key: v1-gradle-cache-{{ checksum "build.gradle.kts" }}
       - run:
           name: Generate SonarQube report
           command: |
-            ./gradlew build sonarqube
+            ./gradlew sonarqube
 workflows:
   version: 2
   workflow:

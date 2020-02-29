@@ -4,7 +4,6 @@ import com.github.exile.inject.Excludes
 import com.github.exile.inject.Inject
 import com.github.exile.inject.Injector
 import com.github.exile.inject.TypeKey
-import java.io.Closeable
 import kotlin.reflect.KClass
 import kotlin.reflect.full.allSupertypes
 import kotlin.reflect.full.findAnnotation
@@ -15,31 +14,22 @@ import kotlin.reflect.full.findAnnotation
  * To bind interface to implementation class, the user don't need to writing code to create bindings,
  * instead just annotate the class with [@Inject][Inject] and enable AutowireBinder, then the AutowireBinder
  * will scan all types implement the interface and create bindings for the ones annotated with [@Inject][Inject].
- *
- * Optionally, annotate an interface with [@Inject][Inject] if run in [EAGER][Injector.LoadingMode.EAGER] mode
- * or [ASYNC][Injector.LoadingMode.ASYNC] mode.
  */
-class AutowireBinder(
-        private val scanner: Injector.Scanner
-) : Injector.Binder, AutoCloseable {
+class AutowireBinder : Injector.Binder {
     override fun bind(key: TypeKey, context: Injector.BindingContext) {
         val cls = key.classifier
-        if (cls.isAbstract) {
+        if (cls.isAbstract && cls != Injector.Scanner::class) {
+            val scanner = context.getBindings(TypeKey(Injector.Scanner::class))
+                    .getSingle().getInstance() as Injector.Scanner
             scanner.findBySuperClass(cls).forEach { implClass ->
                 if (isAcceptable(implClass, cls)) {
                     val type = implClass.allSupertypes.find { it.classifier == cls }
                             ?: throw IllegalStateException()
                     if (key == TypeKey(type)) {
-                        context.bindToType(key, implClass.getQualifiers(), TypeKey(implClass))
+                        context.bindToType(implClass.getQualifiers(), TypeKey(implClass))
                     }
                 }
             }
-        }
-    }
-
-    override fun close() {
-        if (scanner is Closeable) {
-            scanner.close()
         }
     }
 

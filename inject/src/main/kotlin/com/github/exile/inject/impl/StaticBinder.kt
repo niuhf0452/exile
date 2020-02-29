@@ -48,7 +48,7 @@ class StaticBinder(config: (InjectorBuilder.Configurator) -> Unit) : Injector.Bi
                 throw IllegalArgumentException("The implementation type doesn't comply to the bind type: " +
                         "bind type = $key, implementation type = $type")
             }
-            calls.add { c -> c.bindToType(key, qualifiers, type) }
+            calls.add { c -> c.bindToType(qualifiers, type) }
         }
 
         override fun toInstance(instance: Any, qualifiers: List<Annotation>) {
@@ -56,7 +56,7 @@ class StaticBinder(config: (InjectorBuilder.Configurator) -> Unit) : Injector.Bi
                 throw IllegalArgumentException("The type of instance doesn't comply to the bind type: " +
                         "bind type = $key, instance type = ${instance::class}")
             }
-            calls.add { c -> c.bindToInstance(key, qualifiers, instance) }
+            calls.add { c -> c.bindToInstance(qualifiers, instance) }
         }
 
         override fun toProvider(qualifiers: List<Annotation>, provider: () -> Any) {
@@ -64,7 +64,7 @@ class StaticBinder(config: (InjectorBuilder.Configurator) -> Unit) : Injector.Bi
         }
 
         override fun toProvider(qualifiers: List<Annotation>, provider: Injector.Provider) {
-            calls.add { c -> c.bindToProvider(key, qualifiers, provider) }
+            calls.add { c -> c.bindToProvider(qualifiers, provider) }
         }
     }
 

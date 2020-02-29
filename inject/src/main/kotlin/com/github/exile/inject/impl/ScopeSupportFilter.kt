@@ -18,7 +18,7 @@ class ScopeSupportFilter : Injector.Filter {
             if (sq != null) {
                 val key = generateKey(binding)
                 val scope = createScope(sq.value)
-                return CachedBinding(key, q, scope, binding)
+                return ScopedBinding(key, q, scope, binding)
             }
         }
         return binding
@@ -53,7 +53,7 @@ class ScopeSupportFilter : Injector.Filter {
         return sb.toString()
     }
 
-    private class CachedBinding<A : Annotation>(
+    private class ScopedBinding<A : Annotation>(
             private val cacheKey: String,
             private val qualifier: A,
             private val scope: Scope<A>,
@@ -71,7 +71,7 @@ class ScopeSupportFilter : Injector.Filter {
         }
 
         override fun toString(): String {
-            return "Cache($key -> $binding, scope = $scope, ${qualifiers.joinToString(", ")})"
+            return "Scoped(key = $key, qualifier = $qualifier, scope = ${scope::class}, binding = $binding)"
         }
     }
 }

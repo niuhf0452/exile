@@ -1,11 +1,7 @@
 package com.github.exile.inject.autowire
 
-import com.github.exile.inject.Excludes
-import com.github.exile.inject.Inject
-import com.github.exile.inject.Named
-import com.github.exile.inject.Singleton
+import com.github.exile.inject.*
 
-@Inject
 interface AutowireTestInterfaceA
 interface AutowireTestInterfaceB
 interface AutowireTestInterfaceC
@@ -16,6 +12,7 @@ interface AutowireTestInterfaceG
 interface AutowireTestInterfaceH<A>
 interface AutowireTestInterfaceI
 interface AutowireTestInterfaceJ
+interface AutowireTestInterfaceK
 
 @Inject
 class TestClassA : AutowireTestInterfaceA
@@ -55,3 +52,11 @@ class TestClassI : AutowireTestInterfaceI
 @Inject
 @Excludes(AutowireTestInterfaceJ::class)
 class TestClassJ : AutowireTestInterfaceJ
+
+@Factory
+class TestClassKFactory {
+    @Factory
+    fun get(): AutowireTestInterfaceK {
+        return object : AutowireTestInterfaceK {}
+    }
+}

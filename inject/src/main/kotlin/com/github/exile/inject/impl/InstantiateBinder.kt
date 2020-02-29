@@ -3,10 +3,7 @@ package com.github.exile.inject.impl
 import com.github.exile.inject.Inject
 import com.github.exile.inject.Injector
 import com.github.exile.inject.TypeKey
-import kotlin.reflect.KClass
-import kotlin.reflect.KFunction
-import kotlin.reflect.KType
-import kotlin.reflect.KTypeParameter
+import kotlin.reflect.*
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.primaryConstructor
 
@@ -16,12 +13,12 @@ class InstantiateBinder : Injector.Binder {
         if (!cls.isAbstract) {
             val instance = cls.objectInstance
             if (instance != null) {
-                context.bindToInstance(key, cls.getQualifiers(), instance)
+                context.bindToInstance(cls.getQualifiers(), instance)
             } else {
                 val constructor = findConstructor(cls)
                 if (constructor != null) {
                     val provider = makeProvider(constructor, key, context)
-                    context.bindToProvider(key, cls.getQualifiers(), provider)
+                    context.bindToProvider(cls.getQualifiers(), provider)
                 }
             }
         }
@@ -51,14 +48,26 @@ class InstantiateBinder : Injector.Binder {
 
     private fun findConstructor(cls: KClass<*>): KFunction<Any>? {
         cls.constructors.forEach { c ->
-            if (c.findAnnotation<Inject>() != null) {
+            if (isInjectable(c)) {
                 return c
             }
         }
-        if (cls.findAnnotation<Inject>() != null) {
+        if (isInjectable(cls)) {
             return cls.primaryConstructor
         }
         return null
+    }
+
+    private fun isInjectable(element: KAnnotatedElement): Boolean {
+        if (element.findAnnotation<Inject>() != null) {
+            return true
+        }
+        element.annotations.forEach { a ->
+            if (a.annotationClass.findAnnotation<Inject>() != null) {
+                return true
+            }
+        }
+        return false
     }
 
     private fun resolveType(t: KType, key: TypeKey): TypeKey {
@@ -76,10 +85,10 @@ class InstantiateBinder : Injector.Binder {
             return if (params.isEmpty()) {
                 constructor.call()
             } else {
-                val params = Array(params.size) { i ->
+                val args = Array(params.size) { i ->
                     params[i]()
                 }
-                constructor.call(*params)
+                constructor.call(*args)
             }
         }
 

@@ -9,7 +9,7 @@ class ServiceLoaderBinder : Injector.Binder {
         val javaClass = key.classifier.java
         if (javaClass.isInterface && key.arguments.isEmpty()) {
             ServiceLoader.load(javaClass).stream().forEach { provider ->
-                context.bindToProvider(key, emptyList(), ServiceProvider(provider))
+                context.bindToProvider(emptyList(), ServiceProvider(provider))
             }
         }
     }

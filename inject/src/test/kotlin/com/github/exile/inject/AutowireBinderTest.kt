@@ -1,6 +1,7 @@
 package com.github.exile.inject
 
 import com.github.exile.inject.autowire.*
+import com.github.exile.inject.impl.AutowireBinder
 import com.github.exile.inject.impl.ClassgraphScanner
 import io.kotlintest.matchers.beInstanceOf
 import io.kotlintest.matchers.types.shouldBeSameInstanceAs
@@ -13,7 +14,7 @@ import io.kotlintest.specs.FunSpec
 class AutowireBinderTest : FunSpec({
     val injector = Injector.builder()
             .scanner(ClassgraphScanner(listOf(AutowireTestInterfaceA::class.java.packageName)))
-            .enableAutowire()
+            .addBinder(AutowireBinder())
             .enableScope()
             .build()
 

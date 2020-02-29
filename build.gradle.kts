@@ -2,8 +2,8 @@ import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    base
     idea
+    jacoco
     kotlin("jvm") version Vers.kotlin
     id("org.sonarqube") version "2.8"
 }
@@ -27,6 +27,14 @@ sonarqube {
         property("sonar.projectKey", "com.github.exile")
         property("sonar.organization", "niuhf0452")
         property("sonar.host.url", "https://sonarcloud.io")
+    }
+}
+
+tasks.jacocoTestReport {
+    reports {
+        xml.isEnabled = true
+        csv.isEnabled = false
+        html.destination = file("${buildDir}/jacocoHtml")
     }
 }
 

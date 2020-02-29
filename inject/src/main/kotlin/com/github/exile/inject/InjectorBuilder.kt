@@ -10,8 +10,6 @@ interface InjectorBuilder {
 
     fun addFilter(filter: Injector.Filter): InjectorBuilder
 
-    fun loadingMode(mode: Injector.LoadingMode): InjectorBuilder
-
     fun enableAutowire(): InjectorBuilder
 
     fun enableStatic(config: (Configurator) -> Unit): InjectorBuilder

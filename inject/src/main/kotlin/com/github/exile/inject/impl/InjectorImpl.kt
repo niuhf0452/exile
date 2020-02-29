@@ -1,23 +1,25 @@
 package com.github.exile.inject.impl
 
-import com.github.exile.inject.Inject
 import com.github.exile.inject.Injector
 import com.github.exile.inject.InjectorBuilder
 import com.github.exile.inject.TypeKey
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.collections.ArrayList
-import kotlin.concurrent.thread
 
 class InjectorImpl(
         private val binders: List<Injector.Binder>,
         private val filters: List<Injector.Filter>,
         private val bindingCache: MutableMap<TypeKey, Injector.BindingSet>
 ) : Injector {
+    private var closed = false
+
     override fun getBindings(key: TypeKey): Injector.BindingSet {
+        checkClosed()
         return bindingCache[key] ?: run {
             if (binders.isNotEmpty()) {
                 synchronized(this) {
+                    checkClosed()
                     BindingContext(binders, filters, bindingCache)
                             .withContext { c ->
                                 c.getBindings(key)
@@ -30,14 +32,27 @@ class InjectorImpl(
     }
 
     override fun preparedBindings(): List<Injector.Binding> {
+        checkClosed()
         val bindings = mutableListOf<Injector.Binding>()
         bindingCache.values.forEach { bindings.addAll(it) }
         return bindings
     }
 
     override fun close() {
-        binders.forEach { (it as? AutoCloseable)?.close() }
-        filters.forEach { (it as? AutoCloseable)?.close() }
+        synchronized(this) {
+            if (!closed) {
+                closed = true
+                binders.forEach { (it as? AutoCloseable)?.close() }
+                filters.forEach { (it as? AutoCloseable)?.close() }
+                bindingCache.clear()
+            }
+        }
+    }
+
+    private fun checkClosed() {
+        if (closed) {
+            throw IllegalStateException("Injector is closed")
+        }
     }
 
     companion object {
@@ -55,14 +70,11 @@ class InjectorImpl(
     }
 
     class Builder : InjectorBuilder {
-        private var scanner: Injector.Scanner? = null
         private val binders = mutableListOf<Injector.Binder>()
         private val filters = mutableListOf<Injector.Filter>()
-        private var mode = Injector.LoadingMode.LAZY
 
         override fun scanner(scanner: Injector.Scanner): InjectorBuilder {
-            this.scanner = scanner
-            return this
+            return addBinder(ScannerBinder(scanner))
         }
 
         override fun addBinder(binder: Injector.Binder): InjectorBuilder {
@@ -75,15 +87,10 @@ class InjectorImpl(
             return this
         }
 
-        override fun loadingMode(mode: Injector.LoadingMode): InjectorBuilder {
-            this.mode = mode
-            return this
-        }
-
         override fun enableAutowire(): InjectorBuilder {
-            val scanner = this.scanner
-                    ?: throw IllegalStateException("Set scanner first")
-            return addBinder(AutowireBinder(scanner))
+            addBinder(AutowireBinder())
+            addBinder(AutowireFactoryBinder())
+            return this
         }
 
         override fun enableStatic(config: (InjectorBuilder.Configurator) -> Unit): InjectorBuilder {
@@ -102,40 +109,7 @@ class InjectorImpl(
             val binders = ArrayList(this.binders)
             binders.add(InstantiateBinder())
             val filters = ArrayList(this.filters)
-
-            return when (mode) {
-                Injector.LoadingMode.LAZY -> InjectorImpl(binders, filters, ConcurrentHashMap())
-                Injector.LoadingMode.EAGER -> {
-                    val bindingCache = mutableMapOf<TypeKey, Injector.BindingSet>()
-                    val classes = findLoadingClasses()
-                    BindingContext(binders, filters, bindingCache).withContext { c ->
-                        classes.forEach { type ->
-                            c.getBindings(type)
-                        }
-                    }
-                    binders.forEach { (it as? AutoCloseable)?.close() }
-                    filters.forEach { (it as? AutoCloseable)?.close() }
-                    InjectorImpl(emptyList(), emptyList(), bindingCache)
-                }
-                Injector.LoadingMode.ASYNC -> {
-                    val injector = InjectorImpl(binders, filters, ConcurrentHashMap())
-                    val classes = findLoadingClasses()
-                    thread(name = "injector-warm-up", isDaemon = true, start = true) {
-                        classes.forEach { type ->
-                            injector.getBindings(type)
-                        }
-                    }
-                    injector
-                }
-            }
-        }
-
-        private fun findLoadingClasses(): Iterable<TypeKey> {
-            val scanner = this.scanner
-                    ?: throw IllegalStateException("Scanner is not enabled, but $mode mode need a scanner")
-            return scanner.findByAnnotation(Inject::class)
-                    .filter { it.typeParameters.isEmpty() }
-                    .map { TypeKey(it) }
+            return InjectorImpl(binders, filters, ConcurrentHashMap())
         }
     }
 
@@ -147,18 +121,21 @@ class InjectorImpl(
         private val backtrace = Stack<TypeKey>()
         private var bindings = mutableListOf<Injector.Binding>()
 
-        override fun bindToProvider(key: TypeKey, qualifiers: List<Annotation>, provider: Injector.Provider) {
+        override fun bindToProvider(qualifiers: List<Annotation>, provider: Injector.Provider) {
+            val key = backtrace.peek()
             addBinding(ProviderBinding(key, qualifiers, provider))
         }
 
-        override fun bindToInstance(key: TypeKey, qualifiers: List<Annotation>, instance: Any) {
+        override fun bindToInstance(qualifiers: List<Annotation>, instance: Any) {
+            val key = backtrace.peek()
             if (!key.classifier.isInstance(instance)) {
                 throw IllegalStateException()
             }
             addBinding(InstanceBinding(key, qualifiers, instance))
         }
 
-        override fun bindToType(key: TypeKey, qualifiers: List<Annotation>, implType: TypeKey) {
+        override fun bindToType(qualifiers: List<Annotation>, implType: TypeKey) {
+            val key = backtrace.peek()
             if (implType.classifier == key.classifier || !key.isAssignableFrom(implType)) {
                 throw IllegalStateException()
             }
@@ -226,7 +203,7 @@ class InjectorImpl(
         }
 
         override fun toString(): String {
-            return "Instance($key -> $instance, ${qualifiers.joinToString(", ")})"
+            return "Instance(key = $key, qualifiers = [${qualifiers.joinToString(", ")}], instance = $instance)"
         }
     }
 
@@ -240,7 +217,7 @@ class InjectorImpl(
         }
 
         override fun toString(): String {
-            return "Provider($key -> $provider, ${qualifiers.joinToString(", ")})"
+            return "Provider(key = $key, qualifiers = [${qualifiers.joinToString(", ")}], provider = $provider)"
         }
     }
 
@@ -254,7 +231,7 @@ class InjectorImpl(
         }
 
         override fun toString(): String {
-            return "Dependency($key -> $binding, ${qualifiers.joinToString(", ")})"
+            return "Dependency(key = $key, qualifiers = [${qualifiers.joinToString(", ")}], binding = $binding)"
         }
     }
 
