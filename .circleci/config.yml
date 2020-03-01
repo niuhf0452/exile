@@ -15,7 +15,7 @@ jobs:
       - run:
           name: Run tests in parallel
           command: |
-            ./gradlew build --parallel
+            ./gradlew clean build --parallel
       - save_cache:
           paths:
             - ~/.gradle/wrapper
@@ -27,7 +27,7 @@ jobs:
       - run:
           name: Generate SonarQube report
           command: |
-            ./gradlew sonarqube
+            ./gradlew jacocoMerge sonarqube
 workflows:
   version: 2
   workflow:
