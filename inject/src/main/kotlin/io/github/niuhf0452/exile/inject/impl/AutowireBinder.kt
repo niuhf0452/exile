@@ -1,8 +1,6 @@
 package io.github.niuhf0452.exile.inject.impl
 
-import io.github.niuhf0452.exile.inject.Excludes
-import io.github.niuhf0452.exile.inject.Injector
-import io.github.niuhf0452.exile.inject.TypeKey
+import io.github.niuhf0452.exile.inject.*
 import kotlin.reflect.KClass
 import kotlin.reflect.full.allSupertypes
 import kotlin.reflect.full.findAnnotation
@@ -18,8 +16,7 @@ class AutowireBinder : Injector.Binder {
     override fun bind(key: TypeKey, context: Injector.BindingContext) {
         val cls = key.classifier
         if (cls.isAbstract && cls != Injector.Scanner::class) {
-            val scanner = context.getBindings(TypeKey(Injector.Scanner::class))
-                    .getSingle().getInstance() as Injector.Scanner
+            val scanner = context.getInstance(Injector.Scanner::class)
             scanner.findBySuperClass(cls).forEach { implClass ->
                 if (isAcceptable(implClass, cls)) {
                     val type = implClass.allSupertypes.find { it.classifier == cls }

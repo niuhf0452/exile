@@ -1,8 +1,8 @@
 package io.github.niuhf0452.exile.inject
 
-import io.github.niuhf0452.exile.inject.autowire.*
 import io.github.niuhf0452.exile.inject.impl.AutowireBinder
 import io.github.niuhf0452.exile.inject.impl.ClassgraphScanner
+import io.github.niuhf0452.exile.test.autowire.*
 import io.kotlintest.matchers.beInstanceOf
 import io.kotlintest.matchers.types.shouldBeSameInstanceAs
 import io.kotlintest.matchers.types.shouldNotBeSameInstanceAs
@@ -10,7 +10,7 @@ import io.kotlintest.should
 import io.kotlintest.shouldBe
 import io.kotlintest.shouldThrow
 import io.kotlintest.specs.FunSpec
-import io.github.niuhf0452.exile.inject.autowire.TestClassA as TestClassA1
+import io.github.niuhf0452.exile.test.autowire.TestClassA as TestClassA1
 
 class AutowireBinderTest : FunSpec({
     val injector = Injector.builder()

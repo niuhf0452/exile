@@ -108,6 +108,7 @@ class InjectorImpl(
         override fun build(): Injector {
             val binders = ArrayList(this.binders)
             binders.add(InstantiateBinder())
+            binders.add(NativeTypesBinder())
             val filters = ArrayList(this.filters)
             return InjectorImpl(binders, filters, ConcurrentHashMap())
         }

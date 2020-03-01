@@ -1,5 +1,8 @@
 package io.github.niuhf0452.exile.inject
 
+import io.github.niuhf0452.exile.inject.impl.ClassgraphScanner
+import io.kotlintest.matchers.beInstanceOf
+import io.kotlintest.should
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.FunSpec
 
@@ -32,4 +35,33 @@ class InjectorTest : FunSpec({
         binderClosed shouldBe true
         filterClosed shouldBe true
     }
-})
+
+    test("An Injector should inject Provider of class") {
+        @Inject
+        class TestClass
+
+        val injector = Injector.builder()
+                .scanner(ClassgraphScanner(listOf(InjectorTest::class.java.packageName)))
+                .enableAutowire()
+                .build()
+        injector.getBindings(object : TypeLiteral<Provider<TestClass>>() {}.typeKey)
+                .getSingle()
+                .getInstance()
+    }
+
+    test("An Injector should inject Provider of interface") {
+        @Inject
+        class TestClass : TestInterface
+
+        val injector = Injector.builder()
+                .scanner(ClassgraphScanner(listOf(InjectorTest::class.java.packageName)))
+                .enableAutowire()
+                .build()
+        val provider = injector.getBindings(object : TypeLiteral<Provider<TestInterface>>() {}.typeKey)
+                .getSingle()
+                .getInstance() as Provider<*>
+        provider.get() should beInstanceOf<TestClass>()
+    }
+}) {
+    interface TestInterface
+}

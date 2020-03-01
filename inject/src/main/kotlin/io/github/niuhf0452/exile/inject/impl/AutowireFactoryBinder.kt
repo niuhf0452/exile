@@ -3,6 +3,7 @@ package io.github.niuhf0452.exile.inject.impl
 import io.github.niuhf0452.exile.inject.Factory
 import io.github.niuhf0452.exile.inject.Injector
 import io.github.niuhf0452.exile.inject.TypeKey
+import io.github.niuhf0452.exile.inject.getInstance
 import kotlin.reflect.KFunction
 import kotlin.reflect.full.declaredFunctions
 import kotlin.reflect.full.findAnnotation
@@ -12,10 +13,12 @@ class AutowireFactoryBinder : Injector.Binder {
     private val providers = mutableMapOf<TypeKey, MethodProvider>()
 
     override fun bind(key: TypeKey, context: Injector.BindingContext) {
-        initialize(context)
-        val p = providers[key]
-        if (p != null) {
-            context.bindToProvider(p.function.getQualifiers(), p)
+        if (key.classifier != Injector.Scanner::class) {
+            initialize(context)
+            val p = providers[key]
+            if (p != null) {
+                context.bindToProvider(p.function.getQualifiers(), p)
+            }
         }
     }
 
@@ -32,8 +35,7 @@ class AutowireFactoryBinder : Injector.Binder {
     }
 
     private fun loadAllFactories(context: Injector.BindingContext) {
-        val scanner = context.getBindings(TypeKey(Injector.Scanner::class))
-                .getSingle().getInstance() as Injector.Scanner
+        val scanner = context.getInstance(Injector.Scanner::class)
         scanner.findByAnnotation(Factory::class).forEach { factoryCls ->
             if (factoryCls.isAbstract) {
                 throw IllegalStateException("@Factory class doesn't support abstract type: $factoryCls")

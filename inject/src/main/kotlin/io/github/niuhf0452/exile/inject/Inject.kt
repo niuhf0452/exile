@@ -2,6 +2,7 @@
 
 package io.github.niuhf0452.exile.inject
 
+import io.github.niuhf0452.exile.inject.impl.AutowireBinder
 import io.github.niuhf0452.exile.inject.impl.InjectorImpl
 import io.github.niuhf0452.exile.inject.impl.SingletonScope
 import kotlin.reflect.KClass
@@ -10,14 +11,7 @@ import kotlin.reflect.KTypeParameter
 import kotlin.reflect.KVariance
 import kotlin.reflect.full.primaryConstructor
 
-/**
- * Injector is the container of the dependency injection, it provides the API
- * to add new bindings into the container, refresh existing bindings,
- * and create instance of injected interfaces.
- *
- * @since 1.0
- */
-interface Injector : AutoCloseable {
+interface InjectContext {
     /**
      * Get the bindings matched with the type.
      *
@@ -25,8 +19,17 @@ interface Injector : AutoCloseable {
      * @return The bindings matched with the type.
      * @since 1.0
      */
-    fun getBindings(key: TypeKey): BindingSet
+    fun getBindings(key: TypeKey): Injector.BindingSet
+}
 
+/**
+ * Injector is the container of the dependency injection, it provides the API
+ * to add new bindings into the container, refresh existing bindings,
+ * and create instance of injected interfaces.
+ *
+ * @since 1.0
+ */
+interface Injector : InjectContext, AutoCloseable {
     /**
      * Get all prepared bindings. Since the Injector could run in LAZY mode, this method might not return
      * all bindings.
@@ -112,9 +115,7 @@ interface Injector : AutoCloseable {
      *
      * @since 1.0
      */
-    interface BindingContext {
-        fun getBindings(key: TypeKey): BindingSet
-
+    interface BindingContext : InjectContext {
         fun bindToProvider(qualifiers: List<Annotation>, provider: Provider)
 
         fun bindToInstance(qualifiers: List<Annotation>, instance: Any)
@@ -184,20 +185,28 @@ interface Injector : AutoCloseable {
  * @since 1.0
  */
 @Throws(IllegalStateException::class)
-fun <A : Any> Injector.getInstance(cls: KClass<A>, qualifiers: List<Annotation> = emptyList()): A {
-    val binding = getBindings(TypeKey(cls)).getSingle(qualifiers)
+fun <A : Any> InjectContext.getInstance(key: TypeKey, qualifiers: List<Annotation> = emptyList()): A {
+    val bindings = getBindings(key)
+    val binding = try {
+        bindings.getSingle(qualifiers)
+    } catch (ex: IllegalStateException) {
+        throw IllegalStateException("Can't find suitable binding for type: $key", ex)
+    }
     @Suppress("UNCHECKED_CAST")
     return binding.getInstance() as A
+}
+
+@Throws(IllegalStateException::class)
+fun <A : Any> InjectContext.getInstance(cls: KClass<A>, qualifiers: List<Annotation> = emptyList()): A {
+    return getInstance(TypeKey(cls), qualifiers)
 }
 
 /**
  * The Inject annotation has multiple functions:
  *
- * 1. Annotate on interface to hint that the interface should be loaded in [EAGER][Injector.LoadingMode.EAGER] mode
- *    and [ASYNC][Injector.LoadingMode.ASYNC] mode.
- * 2. Annotate on implementation class of a injectable interface to hint that the class should be discovered
+ * 1. Annotate on implementation class of a injectable interface to hint that the class should be discovered
  *    automatically by [AutowireBinder].
- * 3. Annotate on constructor to hint that the constructor should be used to instantiate class by [Injector].
+ * 2. Annotate on constructor to hint that the constructor should be used to instantiate class by [Injector].
  *
  * @since 1.0
  */
@@ -379,4 +388,12 @@ abstract class TypeLiteral<A> {
 
 interface Provider<A> {
     fun get(): A
+}
+
+fun <A> InjectContext.getProvider(key: TypeKey, qualifiers: List<Annotation> = emptyList()): Provider<A> {
+    return getInstance(key, qualifiers)
+}
+
+fun <A : Any> InjectContext.getProvider(cls: KClass<A>, qualifiers: List<Annotation> = emptyList()): Provider<A> {
+    return getProvider(TypeKey(cls), qualifiers)
 }

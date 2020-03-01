@@ -1,4 +1,4 @@
-package io.github.niuhf0452.exile.inject.autowire
+package io.github.niuhf0452.exile.test.autowire
 
 import io.github.niuhf0452.exile.inject.*
 
@@ -12,7 +12,6 @@ interface AutowireTestInterfaceG
 interface AutowireTestInterfaceH<A>
 interface AutowireTestInterfaceI
 interface AutowireTestInterfaceJ
-interface AutowireTestInterfaceK
 
 @Inject
 class TestClassA : AutowireTestInterfaceA
@@ -52,11 +51,3 @@ class TestClassI : AutowireTestInterfaceI
 @Inject
 @Excludes(AutowireTestInterfaceJ::class)
 class TestClassJ : AutowireTestInterfaceJ
-
-@Factory
-class TestClassKFactory {
-    @Factory
-    fun get(): AutowireTestInterfaceK {
-        return object : AutowireTestInterfaceK {}
-    }
-}
