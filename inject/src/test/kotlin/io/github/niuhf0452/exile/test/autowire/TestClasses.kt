@@ -1,6 +1,9 @@
 package io.github.niuhf0452.exile.test.autowire
 
-import io.github.niuhf0452.exile.inject.*
+import io.github.niuhf0452.exile.inject.Excludes
+import io.github.niuhf0452.exile.inject.Inject
+import io.github.niuhf0452.exile.inject.Named
+import io.github.niuhf0452.exile.inject.Singleton
 
 interface AutowireTestInterfaceA
 interface AutowireTestInterfaceB
