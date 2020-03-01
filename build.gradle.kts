@@ -22,28 +22,12 @@ idea {
     }
 }
 
-tasks.jacocoTestReport {
-    executionData(project.fileTree(mapOf("dir" to ".", "include" to "**/build/jacoco/*.exec")))
-    classDirectories.setFrom(project.fileTree(mapOf("dir" to ".", "include" to "**/build/classes/main/**/*")))
-    sourceDirectories.setFrom(project.fileTree(mapOf("dir" to ".", "include" to "**/src/main/java/**/*")))
-}
-
-val allTestCoverageFile = "$buildDir/jacoco/allTestCoverage.exec"
-
-tasks {
-    register<JacocoMerge>("jacocoMerge") {
-        destinationFile = file(allTestCoverageFile)
-        executionData = project.fileTree(mapOf("dir" to ".", "include" to "**/build/jacoco/test.exec"))
-    }
-}
-
 sonarqube {
     properties {
         property("sonar.projectName", "exile")
         property("sonar.projectKey", "com.github.exile")
         property("sonar.organization", "niuhf0452")
         property("sonar.host.url", "https://sonarcloud.io")
-        property("sonar.jacoco.reportPath", allTestCoverageFile)
     }
 }
 
@@ -61,6 +45,10 @@ subprojects {
         targetCompatibility = JavaVersion.VERSION_11
     }
 
+    jacoco {
+        toolVersion = "0.8.5"
+    }
+
     tasks.withType<Test> {
         useJUnitPlatform()
     }
@@ -71,9 +59,9 @@ subprojects {
         kotlinOptions.languageVersion = "1.3"
     }
 
-    sonarqube {
-        properties {
-            property("sonar.jacoco.reportPath", allTestCoverageFile)
+    tasks.jacocoTestReport {
+        reports {
+            xml.isEnabled = true
         }
     }
 
