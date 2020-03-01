@@ -12,6 +12,9 @@ repositories {
     mavenCentral()
 }
 
+group = "io.github.niuhf0452"
+version = "0.1-SNAPSHOT"
+
 idea {
     project {
         jdkName = "11"
@@ -25,7 +28,7 @@ idea {
 sonarqube {
     properties {
         property("sonar.projectName", "exile")
-        property("sonar.projectKey", "com.github.exile")
+        property("sonar.projectKey", "io.github.niuhf0452.exile")
         property("sonar.organization", "niuhf0452")
         property("sonar.host.url", "https://sonarcloud.io")
     }
@@ -35,6 +38,9 @@ subprojects {
     apply(plugin = "java-library")
     apply(plugin = "org.jetbrains.kotlin.jvm")
     apply(plugin = "jacoco")
+
+    group = rootProject.group
+    version = rootProject.version
 
     repositories {
         mavenCentral()
