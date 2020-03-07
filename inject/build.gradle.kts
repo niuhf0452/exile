@@ -1,5 +1,6 @@
 plugins {
     id("org.jetbrains.kotlin.plugin.allopen") version Vers.kotlin
+    `exile-publish`
 }
 
 allOpen {
