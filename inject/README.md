@@ -1,9 +1,9 @@
 # A full featured Dependency Injection library
 
-[![SonarCloud Status](https://sonarcloud.io/api/project_badges/measure?project=io.github.niuhf0452.exile&metric=alert_status)](https://sonarcloud.io/dashboard?id=io.github.niuhf0452.exile)
-[![SonarCloud Coverage](https://sonarcloud.io/api/project_badges/measure?project=io.github.niuhf0452.exile&metric=coverage)](https://sonarcloud.io/component_measures/metric/coverage/list?id=io.github.niuhf0452.exile)
-[![SonarCloud Bugs](https://sonarcloud.io/api/project_badges/measure?project=io.github.niuhf0452.exile&metric=bugs)](https://sonarcloud.io/component_measures/metric/reliability_rating/list?id=io.github.niuhf0452.exile)
-[![SonarCloud Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=io.github.niuhf0452.exile&metric=vulnerabilities)](https://sonarcloud.io/component_measures/metric/security_rating/list?id=io.github.niuhf0452.exile)
+[![SonarCloud Status](https://sonarcloud.io/api/project_badges/measure?project=com.github.niuhf0452.exile&metric=alert_status)](https://sonarcloud.io/dashboard?id=com.github.niuhf0452.exile)
+[![SonarCloud Coverage](https://sonarcloud.io/api/project_badges/measure?project=com.github.niuhf0452.exile&metric=coverage)](https://sonarcloud.io/component_measures/metric/coverage/list?id=com.github.niuhf0452.exile)
+[![SonarCloud Bugs](https://sonarcloud.io/api/project_badges/measure?project=com.github.niuhf0452.exile&metric=bugs)](https://sonarcloud.io/component_measures/metric/reliability_rating/list?id=com.github.niuhf0452.exile)
+[![SonarCloud Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=com.github.niuhf0452.exile&metric=vulnerabilities)](https://sonarcloud.io/component_measures/metric/security_rating/list?id=com.github.niuhf0452.exile)
 
 ## A brief introduction
 

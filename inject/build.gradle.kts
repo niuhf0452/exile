@@ -3,7 +3,7 @@ plugins {
 }
 
 allOpen {
-    annotation("io.github.niuhf0452.exile.inject.Inject")
+    annotation("com.github.niuhf0452.exile.inject.Inject")
 }
 
 dependencies {

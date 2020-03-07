@@ -12,7 +12,7 @@ repositories {
     mavenCentral()
 }
 
-group = "io.github.niuhf0452"
+group = "com.github.niuhf0452"
 version = "0.1-SNAPSHOT"
 
 idea {
@@ -28,7 +28,7 @@ idea {
 sonarqube {
     properties {
         property("sonar.projectName", "exile")
-        property("sonar.projectKey", "io.github.niuhf0452.exile")
+        property("sonar.projectKey", "com.github.niuhf0452.exile")
         property("sonar.organization", "niuhf0452")
         property("sonar.host.url", "https://sonarcloud.io")
     }
