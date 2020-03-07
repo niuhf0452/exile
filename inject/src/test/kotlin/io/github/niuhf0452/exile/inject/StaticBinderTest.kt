@@ -35,6 +35,7 @@ class StaticBinderTest : FunSpec({
     }
 
     val injector = Injector.builder()
+            .addPackage(StaticBinderTest::class.java.packageName)
             .enableStatic { c ->
                 c.bind(Int::class).toInstance(99)
                 c.bind(String::class).toInstance("bar", qualifiers = listOf(Qualifiers.named("foo")))
@@ -105,6 +106,7 @@ class StaticBinderTest : FunSpec({
     test("A StaticBinder should NOT bind to mismatch type instance") {
         shouldThrow<IllegalArgumentException> {
             Injector.builder()
+                    .addPackage(StaticBinderTest::class.java.packageName)
                     .addBinder(StaticBinder { c ->
                         c.bind(Int::class).toInstance("String")
                     })
@@ -114,6 +116,7 @@ class StaticBinderTest : FunSpec({
     test("A StaticBinder should NOT bind to mismatch type") {
         shouldThrow<IllegalArgumentException> {
             Injector.builder()
+                    .addPackage(StaticBinderTest::class.java.packageName)
                     .addBinder(StaticBinder { c ->
                         c.bind(Int::class).toType(TypeKey(String::class))
                     })
@@ -123,6 +126,7 @@ class StaticBinderTest : FunSpec({
     test("A StaticBinder should NOT bind to mismatch generic type") {
         shouldThrow<IllegalArgumentException> {
             Injector.builder()
+                    .addPackage(StaticBinderTest::class.java.packageName)
                     .addBinder(StaticBinder { c ->
                         c.bind(object : TypeLiteral<Consumer<String>>() {}.type)
                                 .toType(object : TypeLiteral<TestSupplier<String>>() {}.typeKey)
@@ -133,6 +137,7 @@ class StaticBinderTest : FunSpec({
     test("A StaticBinder should NOT bind to mismatch type parameter") {
         shouldThrow<IllegalArgumentException> {
             Injector.builder()
+                    .addPackage(StaticBinderTest::class.java.packageName)
                     .addBinder(StaticBinder { c ->
                         c.bind(object : TypeLiteral<Supplier<String>>() {}.type)
                                 .toType(object : TypeLiteral<TestSupplier<Int>>() {}.typeKey)

@@ -1,6 +1,5 @@
 package io.github.niuhf0452.exile.inject
 
-import io.github.niuhf0452.exile.inject.impl.ClassgraphScanner
 import io.kotlintest.matchers.beInstanceOf
 import io.kotlintest.should
 import io.kotlintest.shouldBe
@@ -11,6 +10,7 @@ class InjectorTest : FunSpec({
         var binderClosed = false
         var filterClosed = false
         Injector.builder()
+                .addPackage(InjectorTest::class.java.packageName)
                 .addBinder(object : Injector.Binder, AutoCloseable {
                     override fun bind(key: TypeKey, context: Injector.BindingContext) = Unit
 
@@ -41,7 +41,7 @@ class InjectorTest : FunSpec({
         class TestClass
 
         val injector = Injector.builder()
-                .scanner(ClassgraphScanner(listOf(InjectorTest::class.java.packageName)))
+                .addPackage(InjectorTest::class.java.packageName)
                 .enableAutowire()
                 .build()
         injector.getBindings(object : TypeLiteral<Provider<TestClass>>() {}.typeKey)
@@ -54,7 +54,7 @@ class InjectorTest : FunSpec({
         class TestClass : TestInterface
 
         val injector = Injector.builder()
-                .scanner(ClassgraphScanner(listOf(InjectorTest::class.java.packageName)))
+                .addPackage(InjectorTest::class.java.packageName)
                 .enableAutowire()
                 .build()
         val provider = injector.getBindings(object : TypeLiteral<Provider<TestInterface>>() {}.typeKey)

@@ -1,8 +1,6 @@
 package io.github.niuhf0452.exile.inject.impl
 
-import io.github.niuhf0452.exile.inject.Injector
-import io.github.niuhf0452.exile.inject.InjectorBuilder
-import io.github.niuhf0452.exile.inject.TypeKey
+import io.github.niuhf0452.exile.inject.*
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.collections.ArrayList
@@ -70,11 +68,31 @@ class InjectorImpl(
     }
 
     class Builder : InjectorBuilder {
+        private val packageNames = mutableListOf<String>()
         private val binders = mutableListOf<Injector.Binder>()
         private val filters = mutableListOf<Injector.Filter>()
+        private var scannerFactory: ClassScanner.Factory? = null
+        private var enhancer: ClassEnhancer? = null
+        private val interceptors = mutableListOf<ClassInterceptor>()
 
-        override fun scanner(scanner: Injector.Scanner): InjectorBuilder {
-            return addBinder(ScannerBinder(scanner))
+        override fun addPackage(packageName: String): InjectorBuilder {
+            packageNames.add(packageName)
+            return this
+        }
+
+        override fun scanner(scannerFactory: ClassScanner.Factory): InjectorBuilder {
+            this.scannerFactory = scannerFactory
+            return this
+        }
+
+        override fun enhancer(enhancer: ClassEnhancer): InjectorBuilder {
+            this.enhancer = enhancer
+            return this
+        }
+
+        override fun addInterceptor(interceptor: ClassInterceptor): InjectorBuilder {
+            interceptors.add(interceptor)
+            return this
         }
 
         override fun addBinder(binder: Injector.Binder): InjectorBuilder {
@@ -106,8 +124,15 @@ class InjectorImpl(
         }
 
         override fun build(): Injector {
+            val packageNames = ArrayList(this.packageNames)
+            if (packageNames.isEmpty()) {
+                throw IllegalArgumentException("package name not set")
+            }
             val binders = ArrayList(this.binders)
-            binders.add(InstantiateBinder())
+            val enhancer = this.enhancer ?: NoopEnhancer()
+            val scannerFactory = this.scannerFactory ?: ClassgraphScanner.Factory()
+            binders.add(ScannerBinder(scannerFactory.createScanner(packageNames)))
+            binders.add(InstantiateBinder(packageNames, enhancer, ArrayList(interceptors)))
             binders.add(NativeTypesBinder())
             val filters = ArrayList(this.filters)
             return InjectorImpl(binders, filters, ConcurrentHashMap())

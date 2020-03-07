@@ -4,7 +4,13 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KType
 
 interface InjectorBuilder {
-    fun scanner(scanner: Injector.Scanner): InjectorBuilder
+    fun addPackage(packageName: String): InjectorBuilder
+
+    fun scanner(scannerFactory: ClassScanner.Factory): InjectorBuilder
+
+    fun enhancer(enhancer: ClassEnhancer): InjectorBuilder
+
+    fun addInterceptor(interceptor: ClassInterceptor): InjectorBuilder
 
     fun addBinder(binder: Injector.Binder): InjectorBuilder
 

@@ -14,7 +14,7 @@ import io.github.niuhf0452.exile.test.autowire.TestClassA as TestClassA1
 
 class AutowireBinderTest : FunSpec({
     val injector = Injector.builder()
-            .scanner(ClassgraphScanner(listOf(AutowireTestInterfaceA::class.java.packageName)))
+            .addPackage(AutowireTestInterfaceA::class.java.packageName)
             .addBinder(AutowireBinder())
             .enableScope()
             .build()

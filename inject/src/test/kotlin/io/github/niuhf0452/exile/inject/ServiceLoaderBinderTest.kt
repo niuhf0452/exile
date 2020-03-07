@@ -6,7 +6,10 @@ import io.kotlintest.shouldBe
 import io.kotlintest.specs.FunSpec
 
 class ServiceLoaderBinderTest : FunSpec({
-    val injector = Injector.builder().enableServiceLoader().build()
+    val injector = Injector.builder()
+            .addPackage(ServiceLoaderBinderTest::class.java.packageName)
+            .enableServiceLoader()
+            .build()
 
     test("A ServiceLoaderBinder should inject services") {
         val list = injector.getBindings(TypeKey(TestService::class)).toList()

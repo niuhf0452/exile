@@ -4,12 +4,7 @@ package io.github.niuhf0452.exile.inject
 
 import io.github.niuhf0452.exile.inject.impl.AutowireBinder
 import io.github.niuhf0452.exile.inject.impl.InjectorImpl
-import io.github.niuhf0452.exile.inject.impl.SingletonScope
 import kotlin.reflect.KClass
-import kotlin.reflect.KType
-import kotlin.reflect.KTypeParameter
-import kotlin.reflect.KVariance
-import kotlin.reflect.full.primaryConstructor
 
 interface InjectContext {
     /**
@@ -143,26 +138,6 @@ interface Injector : InjectContext, AutoCloseable {
         fun filter(binding: Binding): Binding
     }
 
-    /**
-     * Enhancer is adapter interface to AOP components, e.g. CGLib, ByteBuddy.
-     *
-     * @since 1.0
-     */
-    interface Enhancer {
-        fun enhance(cls: KClass<*>): (List<Any?>) -> Any
-    }
-
-    /**
-     * ClassScanner is SPI used to extend the class scan behaviour.
-     *
-     * @since 1.0
-     */
-    interface Scanner {
-        fun findBySuperClass(cls: KClass<*>): Iterable<KClass<*>>
-
-        fun findByAnnotation(cls: KClass<out Annotation>): Iterable<KClass<*>>
-    }
-
     companion object {
         /**
          * Get a builder for building instance of [Injector].
@@ -171,34 +146,6 @@ interface Injector : InjectContext, AutoCloseable {
             return InjectorImpl.Builder()
         }
     }
-}
-
-/**
- * Inject a single instance of class `cls`.
- * The binding is selected by matching the qualifier, one and only one binding is selected.
- * An exception is thrown if can't select exactly one binding.
- *
- * @param cls The class to inject.
- * @param qualifiers The qualifiers The qualifiers to match with bindings.
- * @return The instance of class `cls`.
- * @throws IllegalStateException No bindings or more than one bindings.
- * @since 1.0
- */
-@Throws(IllegalStateException::class)
-fun <A : Any> InjectContext.getInstance(key: TypeKey, qualifiers: List<Annotation> = emptyList()): A {
-    val bindings = getBindings(key)
-    val binding = try {
-        bindings.getSingle(qualifiers)
-    } catch (ex: IllegalStateException) {
-        throw IllegalStateException("Can't find suitable binding for type: $key", ex)
-    }
-    @Suppress("UNCHECKED_CAST")
-    return binding.getInstance() as A
-}
-
-@Throws(IllegalStateException::class)
-fun <A : Any> InjectContext.getInstance(cls: KClass<A>, qualifiers: List<Annotation> = emptyList()): A {
-    return getInstance(TypeKey(cls), qualifiers)
 }
 
 /**
@@ -227,101 +174,6 @@ annotation class Inject
 annotation class Excludes(vararg val value: KClass<*>)
 
 /**
- * The Qualifier annotation is used to annotate other annotation classes for hinting the injector
- * that they are qualifiers and should be collected for selecting.
- *
- * @since 1.0
- */
-@MustBeDocumented
-@Target(AnnotationTarget.ANNOTATION_CLASS)
-@Retention(AnnotationRetention.RUNTIME)
-annotation class Qualifier
-
-/**
- * The Named annotation gives the implementation class a identity name which is used as selector
- * in injecting.
- *
- * For example, if we have two implementations for the CacheStore interface, one is Redis and another is Memcached.
- * We can use qualifier to differentiate the two implementations:
- *
- * ```kotlin
- *
- * interface CacheStore
- *
- * @Autowire
- * @Named("redis")
- * interface RedisStore : CacheStore
- *
- * @Autowire
- * @Named("memcached")
- * interface MemcachedStore : CacheStore
- *
- * class Service(
- *   @Named("memcached")
- *   val store: CacheStore
- * )
- *
- * @Test
- * fun test() {
- *     assert(injector.getInstance(CacheStore::class, "redis") is RedisStore)
- *     assert(injector.getInstance(CacheStore::class, "memcached") is MemcachedStore)
- *     assert(injector.getInstance(Service::class).store is MemcachedStore)
- * }
- * ```
- *
- * @since 1.0
- */
-@Qualifier
-@MustBeDocumented
-@Retention(AnnotationRetention.RUNTIME)
-@Target(AnnotationTarget.CLASS, AnnotationTarget.VALUE_PARAMETER, AnnotationTarget.FUNCTION)
-annotation class Named(val value: String)
-
-/**
- * The ScopeQualifier is to annotate on a qualifier to hint the injected object should be cached in
- * a certain scope.
- *
- * @see Singleton
- * @since 1.0
- */
-@MustBeDocumented
-@Target(AnnotationTarget.ANNOTATION_CLASS)
-@Retention(AnnotationRetention.RUNTIME)
-annotation class ScopeQualifier(val value: KClass<out Scope<*>>)
-
-/**
- * Scope is responsible for container aware.
- *
- * In a scoped injection, instances are cached in the containers, each container is stand for a scope instance.
- * Injector use Scope to find the container for the running context.
- *
- * So the method [getContainer] will be called for every injecting.
- *
- * @see Singleton
- * @since 1.0
- */
-interface Scope<A : Annotation> {
-    fun getContainer(): Container<A>
-
-    interface Container<A> {
-        fun getOrCreate(id: String, qualifier: A, provider: () -> Any): Any
-    }
-}
-
-/**
- * The Singleton annotation is a hint to injector that make it caches the instance injected,
- * so that the further injecting will reuse the cached instance.
- *
- * @since 1.0
- */
-@Qualifier
-@MustBeDocumented
-@Retention(AnnotationRetention.RUNTIME)
-@Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
-@ScopeQualifier(SingletonScope::class)
-annotation class Singleton
-
-/**
  * Factory provides support of Spring style configuration.
  *
  * @since 1.0
@@ -332,68 +184,6 @@ annotation class Singleton
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
 annotation class Factory
 
-/**
- * This is a helper class for creating qualifier/annotation instances,
- * since kotlin doesn't support instantiate annotation class with 'new' operator.
- *
- * @since 1.0
- */
-object Qualifiers {
-    fun <A : Annotation> qualifier(cls: KClass<A>, vararg args: Any?): A {
-        return cls.primaryConstructor!!.call(*args)
-    }
-
-    fun named(value: String): Named = qualifier(Named::class, value)
-
-    fun singleton(): Singleton = qualifier(Singleton::class)
-}
-
-/**
- * A TypeLiteral is used to construct Type instance from literal.
- * To get a Type, write code like this:
- *
- * ```kotlin
- * val type = object: TypeLiteral<String>() {}.type
- * assert(type.classifier == String::class)
- * ```
- *
- * @since 1.0
- */
-abstract class TypeLiteral<A> {
-    val type: KType
-        get() {
-            val arr = this::class.supertypes
-            if (arr.size != 1) {
-                throw IllegalStateException("Don't mixin TypeLiteral.")
-            }
-            if (arr[0].classifier != TypeLiteral::class) {
-                throw IllegalStateException("TypeLiteral could only be inherited directly.")
-            }
-            val (variance, type) = arr[0].arguments.first()
-            if (variance == null || type == null) {
-                throw IllegalStateException("Don't use star with TypeLiteral.")
-            }
-            if (variance != KVariance.INVARIANT) {
-                throw IllegalStateException("Don't use variiant with TypeLiteral.")
-            }
-            if (type.classifier is KTypeParameter) {
-                throw IllegalStateException("Don't use parameter type with TypeLiteral.")
-            }
-            return type
-        }
-
-    val typeKey: TypeKey
-        get() = TypeKey(type)
-}
-
 interface Provider<A> {
     fun get(): A
-}
-
-fun <A> InjectContext.getProvider(key: TypeKey, qualifiers: List<Annotation> = emptyList()): Provider<A> {
-    return getInstance(key, qualifiers)
-}
-
-fun <A : Any> InjectContext.getProvider(cls: KClass<A>, qualifiers: List<Annotation> = emptyList()): Provider<A> {
-    return getProvider(TypeKey(cls), qualifiers)
 }

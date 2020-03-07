@@ -1,11 +1,14 @@
 package io.github.niuhf0452.exile.inject.impl
 
 import io.github.classgraph.ClassGraph
-import io.github.niuhf0452.exile.inject.Injector
+import io.github.niuhf0452.exile.inject.ClassScanner
 import kotlin.reflect.KClass
 import kotlin.reflect.jvm.jvmName
 
-class ClassgraphScanner(packageNames: List<String>) : Injector.Scanner, AutoCloseable {
+/**
+ * An implementation of [ClassScanner] backed by Classgraph library.
+ */
+class ClassgraphScanner(packageNames: List<String>) : ClassScanner, AutoCloseable {
     private val scanResult = ClassGraph()
             .enableAnnotationInfo()
             .enableClassInfo()
@@ -29,5 +32,11 @@ class ClassgraphScanner(packageNames: List<String>) : Injector.Scanner, AutoClos
 
     override fun close() {
         scanResult.close()
+    }
+
+    class Factory : ClassScanner.Factory {
+        override fun createScanner(packageNames: List<String>): ClassScanner {
+            return ClassgraphScanner(packageNames)
+        }
     }
 }

@@ -12,7 +12,7 @@ import io.kotlintest.specs.FunSpec
 class AutowireFactoryBinderTest : FunSpec({
     fun forCorrectCase(): Injector {
         return Injector.builder()
-                .scanner(ClassgraphScanner(listOf(AutowireTestInterfaceA::class.java.packageName)))
+                .addPackage(AutowireTestInterfaceA::class.java.packageName)
                 .addBinder(AutowireFactoryBinder())
                 .enableScope()
                 .build()
@@ -32,8 +32,7 @@ class AutowireFactoryBinderTest : FunSpec({
 
     test("An AutowireFactoryBinder should NOT bind to generic method") {
         val injector = Injector.builder()
-                .scanner(ClassgraphScanner(listOf(
-                        TestClass::class.java.packageName)))
+                .addPackage(TestClass::class.java.packageName)
                 .addBinder(AutowireFactoryBinder())
                 .build()
         shouldThrow<IllegalStateException> {

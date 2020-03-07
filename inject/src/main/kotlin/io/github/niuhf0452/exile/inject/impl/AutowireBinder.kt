@@ -15,8 +15,8 @@ import kotlin.reflect.full.findAnnotation
 class AutowireBinder : Injector.Binder {
     override fun bind(key: TypeKey, context: Injector.BindingContext) {
         val cls = key.classifier
-        if (cls.isAbstract && cls != Injector.Scanner::class) {
-            val scanner = context.getInstance(Injector.Scanner::class)
+        if (cls.isAbstract && cls != ClassScanner::class) {
+            val scanner = context.getInstance(ClassScanner::class)
             scanner.findBySuperClass(cls).forEach { implClass ->
                 if (isAcceptable(implClass, cls)) {
                     val type = implClass.allSupertypes.find { it.classifier == cls }
