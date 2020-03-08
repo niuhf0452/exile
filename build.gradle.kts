@@ -1,10 +1,8 @@
 import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     idea
-    jacoco
-    kotlin("jvm") version Vers.kotlin
+    kotlin("jvm")
     id("org.sonarqube") version "2.8"
 }
 
@@ -31,47 +29,5 @@ sonarqube {
         property("sonar.projectKey", "com.github.niuhf0452.exile")
         property("sonar.organization", "niuhf0452")
         property("sonar.host.url", "https://sonarcloud.io")
-    }
-}
-
-subprojects {
-    apply(plugin = "java-library")
-    apply(plugin = "org.jetbrains.kotlin.jvm")
-    apply(plugin = "jacoco")
-
-    group = rootProject.group
-    version = rootProject.version
-
-    repositories {
-        mavenCentral()
-    }
-
-    java {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-
-    jacoco {
-        toolVersion = "0.8.5"
-    }
-
-    tasks.withType<Test> {
-        useJUnitPlatform()
-    }
-
-    tasks.withType<KotlinCompile>().configureEach {
-        kotlinOptions.jvmTarget = "11"
-        kotlinOptions.apiVersion = "1.3"
-        kotlinOptions.languageVersion = "1.3"
-    }
-
-    tasks.jacocoTestReport {
-        reports {
-            xml.isEnabled = true
-        }
-    }
-
-    dependencies {
-        testImplementation("io.kotlintest:kotlintest-runner-junit5:${Vers.kotlin_test}")
     }
 }

@@ -77,4 +77,4 @@ want to put more effort on Java.
 
 ## Getting Started
 
-Please read the document [here][doc/getting_started.md].
+Please read the document [here](doc/getting_started.md).

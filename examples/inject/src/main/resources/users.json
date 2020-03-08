@@ -1,0 +1,39 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "email": "freeda.smitham@example.com",
+      "name": "Freeda Smitham"
+    },
+    {
+      "id": 2,
+      "email": "max.wolf@example.com",
+      "name": "Maximillian Wolf"
+    },
+    {
+      "id": 3,
+      "email": "asa.konopelski@example.com",
+      "name": "Asa Konopelski"
+    },
+    {
+      "id": 4,
+      "email": "john.smith@example.com",
+      "name": "John Smith"
+    },
+    {
+      "id": 5,
+      "email": "nico.haley@example.com",
+      "name": "Nico Haley"
+    },
+    {
+      "id": 6,
+      "email": "stefan.dd@example.com",
+      "name": "Stefan D'Amore DDS"
+    },
+    {
+      "id": 7,
+      "email": "karolann.do@example.com",
+      "name": "Karolann Donnelly"
+    }
+  ]
+}

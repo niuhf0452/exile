@@ -1,15 +1,15 @@
-plugins {
-    id("org.jetbrains.kotlin.plugin.allopen") version Vers.kotlin
-    `exile-publish`
-}
+import com.github.niuhf0452.exile.bom
 
-allOpen {
-    annotation("com.github.niuhf0452.exile.inject.Inject")
+plugins {
+    id("exile.kotlin")
+    id("exile.kotlin.allopen")
+    id("exile.kotlin.test")
+    id("exile.maven.publish")
 }
 
 dependencies {
-    api(kotlin("stdlib-jdk8"))
-    api(kotlin("reflect"))
-    implementation("io.github.classgraph:classgraph:${Vers.classgraph}")
-    implementation("net.bytebuddy:byte-buddy:${Vers.bytebuddy}")
+    api(bom.`kotlin-stdlib-jdk8`)
+    api(bom.`kotlin-reflect`)
+    implementation(bom.classgraph)
+    implementation(bom.`byte-buddy`)
 }

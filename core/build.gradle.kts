@@ -1,5 +1,13 @@
+import com.github.niuhf0452.exile.bom
+import com.github.niuhf0452.exile.submodule
+
+plugins {
+    id("exile.kotlin")
+    id("exile.kotlin.test")
+}
+
 dependencies {
-    api(project(":${rootProject.name}-inject"))
-    implementation("org.jetbrains.kotlinx:kotlinx-io-jvm:${Vers.kotlinx_io}")
-    implementation("com.google.guava:guava:${Vers.guava}")
+    api(submodule("inject"))
+    implementation(bom.`kotlinx-io`)
+    implementation(bom.guava)
 }
