@@ -1,15 +1,22 @@
 package com.github.niuhf0452.exile.inject.impl
 
 import com.github.niuhf0452.exile.inject.Injector
+import com.github.niuhf0452.exile.inject.Qualifier
 import com.github.niuhf0452.exile.inject.TypeKey
 import java.util.*
+import kotlin.reflect.full.findAnnotation
 
 class ServiceLoaderBinder : Injector.Binder {
     override fun bind(key: TypeKey, context: Injector.BindingContext) {
         val javaClass = key.classifier.java
         if (javaClass.isInterface && key.arguments.isEmpty()) {
             ServiceLoader.load(javaClass).stream().forEach { provider ->
-                context.bindToProvider(emptyList(), ServiceProvider(provider))
+                val qualifiers = provider.type()?.annotations
+                        ?.filter { a ->
+                            a.annotationClass.findAnnotation<Qualifier>() != null
+                        }
+                        ?: emptyList()
+                context.bindToProvider(qualifiers, ServiceProvider(provider))
             }
         }
     }

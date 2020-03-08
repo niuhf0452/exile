@@ -1,4 +1,4 @@
-# A full featured Dependency Injection library
+# A simple yet powerful dependency injection library
 
 [![SonarCloud Status](https://sonarcloud.io/api/project_badges/measure?project=com.github.niuhf0452.exile&metric=alert_status)](https://sonarcloud.io/dashboard?id=com.github.niuhf0452.exile)
 [![SonarCloud Coverage](https://sonarcloud.io/api/project_badges/measure?project=com.github.niuhf0452.exile&metric=coverage)](https://sonarcloud.io/component_measures/metric/coverage/list?id=com.github.niuhf0452.exile)
