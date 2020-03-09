@@ -25,7 +25,7 @@ class StaticBinder(config: (InjectorBuilder.Configurator) -> Unit) : Injector.Bi
 
         override fun bind(cls: KClass<*>): InjectorBuilder.BindingBuilder {
             if (cls.typeParameters.isNotEmpty()) {
-                throw IllegalStateException("Can't bind generic class: $cls")
+                throw IllegalArgumentException("Can't bind generic class: $cls")
             }
             return bind(cls.starProjectedType)
         }

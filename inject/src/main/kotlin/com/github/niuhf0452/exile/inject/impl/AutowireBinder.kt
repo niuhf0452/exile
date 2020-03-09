@@ -31,7 +31,8 @@ class AutowireBinder : Injector.Binder {
 
     private fun isAcceptable(implClass: KClass<*>, cls: KClass<*>): Boolean {
         val a = implClass.findAnnotation<Excludes>()
-        return !implClass.isAbstract
+        return implClass.findAnnotation<Inject>() != null
+                && !implClass.isAbstract
                 && implClass.typeParameters.isEmpty()
                 && (a == null || !a.value.contains(cls))
     }

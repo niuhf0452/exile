@@ -57,26 +57,26 @@ class AutowireBinderTest : FunSpec({
     }
 
     test("An AutowireBinder should NOT bind abstract class") {
-        shouldThrow<IllegalStateException> {
+        shouldThrow<IllegalArgumentException> {
             injector.getInstance(AutowireTestInterfaceG::class)
         }
     }
 
     test("An AutowireBinder should NOT bind generic class") {
-        shouldThrow<IllegalStateException> {
+        shouldThrow<IllegalArgumentException> {
             injector.getBindings(object : TypeLiteral<AutowireTestInterfaceH<Int>>() {}.typeKey)
                     .getSingle()
         }
     }
 
     test("An AutowireBinder should NOT bind class without @Inject") {
-        shouldThrow<IllegalStateException> {
+        shouldThrow<IllegalArgumentException> {
             injector.getInstance(AutowireTestInterfaceI::class)
         }
     }
 
     test("An AutowireBinder should NOT bind class to interface with @Excludes") {
-        shouldThrow<IllegalStateException> {
+        shouldThrow<IllegalArgumentException> {
             injector.getInstance(AutowireTestInterfaceJ::class)
         }
     }

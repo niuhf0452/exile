@@ -45,9 +45,10 @@ interface Injector : InjectContext, AutoCloseable {
          *
          * @param qualifiers The qualifiers to match with bindings.
          * @return A binding who has all the qualifiers.
-         * @throws IllegalStateException No bindings or more than one bindings.
+         * @throws IllegalArgumentException No bindings or more than one bindings.
          * @since 1.0
          */
+        @Throws(IllegalArgumentException::class)
         fun getSingle(qualifiers: List<Annotation> = emptyList()): Binding
 
         /**

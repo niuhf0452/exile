@@ -21,20 +21,20 @@ abstract class TypeLiteral<A> {
         get() {
             val arr = this::class.supertypes
             if (arr.size != 1) {
-                throw IllegalStateException("Don't mixin TypeLiteral.")
+                throw IllegalArgumentException("Don't mixin TypeLiteral.")
             }
             if (arr[0].classifier != TypeLiteral::class) {
-                throw IllegalStateException("TypeLiteral could only be inherited directly.")
+                throw IllegalArgumentException("TypeLiteral could only be inherited directly.")
             }
             val (variance, type) = arr[0].arguments.first()
             if (variance == null || type == null) {
-                throw IllegalStateException("Don't use star with TypeLiteral.")
+                throw IllegalArgumentException("Don't use star with TypeLiteral.")
             }
             if (variance != KVariance.INVARIANT) {
-                throw IllegalStateException("Don't use variiant with TypeLiteral.")
+                throw IllegalArgumentException("Don't use variiant with TypeLiteral.")
             }
             if (type.classifier is KTypeParameter) {
-                throw IllegalStateException("Don't use parameter type with TypeLiteral.")
+                throw IllegalArgumentException("Don't use parameter type with TypeLiteral.")
             }
             return type
         }

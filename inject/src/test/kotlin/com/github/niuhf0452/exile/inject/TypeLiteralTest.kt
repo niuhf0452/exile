@@ -29,7 +29,7 @@ class TypeLiteralTest : FunSpec({
         abstract class Parent : TypeLiteral<String>()
         class Child : Parent()
 
-        shouldThrow<IllegalStateException> {
+        shouldThrow<IllegalArgumentException> {
             Child().type
         }
     }
@@ -37,7 +37,7 @@ class TypeLiteralTest : FunSpec({
     test("A TypeLiteral should not accept parameter type") {
         class Generic<A> : TypeLiteral<A>()
 
-        shouldThrow<IllegalStateException> {
+        shouldThrow<IllegalArgumentException> {
             Generic<String>().type
         }
     }

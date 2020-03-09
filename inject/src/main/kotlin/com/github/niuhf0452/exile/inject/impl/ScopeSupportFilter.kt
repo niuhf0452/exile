@@ -7,6 +7,7 @@ import com.github.niuhf0452.exile.inject.TypeKey
 import java.security.MessageDigest
 import kotlin.reflect.KClass
 import kotlin.reflect.full.findAnnotation
+import kotlin.reflect.jvm.jvmName
 
 class ScopeSupportFilter : Injector.Filter {
     override val order: Int
@@ -38,8 +39,7 @@ class ScopeSupportFilter : Injector.Filter {
         val md = MessageDigest.getInstance("SHA1")
         val buf = md.digest(sb.toString().toByteArray())
         val hash = toHex(buf)
-        val name = binding.key.classifier.simpleName
-                ?: throw IllegalStateException("Can't cache an object without simpleName: ${binding.key}")
+        val name = binding.key.classifier.jvmName
         return "$name@$hash"
     }
 

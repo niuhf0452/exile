@@ -155,7 +155,8 @@ class InjectorImpl(
         override fun bindToInstance(qualifiers: List<Annotation>, instance: Any) {
             val key = backtrace.peek()
             if (!key.classifier.isInstance(instance)) {
-                throw IllegalStateException()
+                throw IllegalArgumentException("The instance is not compatible with the bind type: " +
+                        "instance type = ${instance::class}, bind type = $key")
             }
             addBinding(InstanceBinding(key, qualifiers, instance))
         }
@@ -163,7 +164,8 @@ class InjectorImpl(
         override fun bindToType(qualifiers: List<Annotation>, implType: TypeKey) {
             val key = backtrace.peek()
             if (implType.classifier == key.classifier || !key.isAssignableFrom(implType)) {
-                throw IllegalStateException()
+                throw IllegalArgumentException("The implType is not compatible with the bind type: " +
+                        "implType = $implType, bind type = $key")
             }
             val iterator = getBindings(implType).iterator()
             if (!iterator.hasNext()) {
@@ -263,7 +265,7 @@ class InjectorImpl(
 
     private object EmptyBindingSet : Injector.BindingSet {
         override fun getSingle(qualifiers: List<Annotation>): Injector.Binding {
-            throw IllegalStateException("No binding, it's empty BindingSet")
+            throw IllegalArgumentException("No binding, it's empty BindingSet")
         }
 
         override fun getList(qualifiers: List<Annotation>): List<Injector.Binding> {
@@ -280,7 +282,7 @@ class InjectorImpl(
     ) : Injector.BindingSet {
         override fun getSingle(qualifiers: List<Annotation>): Injector.Binding {
             if (!binding.qualifiers.containsAll(qualifiers)) {
-                throw IllegalStateException("No binding match the qualifiers")
+                throw IllegalArgumentException("No binding match the qualifiers")
             }
             return binding
         }
@@ -316,9 +318,9 @@ class InjectorImpl(
         override fun getSingle(qualifiers: List<Annotation>): Injector.Binding {
             val iterator = iterator()
             val binding = iterator.findNext(qualifiers)
-                    ?: throw IllegalStateException("No binding match the qualifiers")
+                    ?: throw IllegalArgumentException("No binding match the qualifiers")
             if (iterator.findNext(qualifiers) != null) {
-                throw IllegalStateException("More than one bindings match the qualifiers")
+                throw IllegalArgumentException("More than one bindings match the qualifiers")
             }
             return binding
         }

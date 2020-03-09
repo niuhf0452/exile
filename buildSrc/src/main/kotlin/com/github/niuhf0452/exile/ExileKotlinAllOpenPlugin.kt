@@ -14,6 +14,7 @@ class ExileKotlinAllOpenPlugin : Plugin<Project> {
 
         extensions.getByType(AllOpenExtension::class.java).run {
             annotation("com.github.niuhf0452.exile.inject.Inject")
+            annotation("com.github.niuhf0452.exile.inject.Factory")
         }
     }
 }

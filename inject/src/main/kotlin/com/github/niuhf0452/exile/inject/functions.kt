@@ -12,30 +12,32 @@ import kotlin.reflect.KClass
  * @param key The type to inject.
  * @param qualifiers The qualifiers The qualifiers to match with bindings.
  * @return The instance of class `cls`.
- * @throws IllegalStateException No bindings or more than one bindings.
+ * @throws IllegalArgumentException No bindings or more than one bindings.
  * @since 1.0
  */
-@Throws(IllegalStateException::class)
+@Throws(IllegalArgumentException::class)
 fun <A : Any> InjectContext.getInstance(key: TypeKey, qualifiers: List<Annotation> = emptyList()): A {
     val bindings = getBindings(key)
     val binding = try {
         bindings.getSingle(qualifiers)
-    } catch (ex: IllegalStateException) {
-        throw IllegalStateException("Can't find suitable binding for type: $key", ex)
+    } catch (ex: IllegalArgumentException) {
+        throw IllegalArgumentException("Can't find suitable binding for type: $key", ex)
     }
     @Suppress("UNCHECKED_CAST")
     return binding.getInstance() as A
 }
 
-@Throws(IllegalStateException::class)
+@Throws(IllegalArgumentException::class)
 fun <A : Any> InjectContext.getInstance(cls: KClass<A>, qualifiers: List<Annotation> = emptyList()): A {
     return getInstance(TypeKey(cls), qualifiers)
 }
 
+@Throws(IllegalArgumentException::class)
 fun <A> InjectContext.getProvider(key: TypeKey, qualifiers: List<Annotation> = emptyList()): Provider<A> {
     return getInstance(key, qualifiers)
 }
 
+@Throws(IllegalArgumentException::class)
 fun <A : Any> InjectContext.getProvider(cls: KClass<A>, qualifiers: List<Annotation> = emptyList()): Provider<A> {
-    return getProvider(TypeKey(cls), qualifiers)
+    return getProvider(TypeKey(Provider::class, listOf(TypeKey(cls))), qualifiers)
 }

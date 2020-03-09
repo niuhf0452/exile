@@ -48,7 +48,8 @@ class InstantiateBinder(
                     NullProvider
                 }
                 1 -> BindingProvider(bindings[0])
-                else -> throw IllegalStateException("Multiple bindings for parameter: $p")
+                else -> throw IllegalStateException(bindings.joinToString(
+                        "\n- ", "Multiple bindings for parameter: $p\n- "))
             }
         }
         return ConstructorProvider(constructor, params)
@@ -125,12 +126,12 @@ class InstantiateBinder(
 
     private fun checkModifiable(m: KFunction<*>) {
         val modifiers = m.javaMethod?.modifiers
-                ?: throw IllegalStateException("")
+                ?: throw IllegalArgumentException("Can't find java method: $m")
         if (!Modifier.isProtected(modifiers) && !Modifier.isPublic(modifiers)) {
-            throw IllegalStateException("Private or package internal method can't be intercepted: $m")
+            throw IllegalArgumentException("Private or package internal method can't be intercepted: $m")
         }
         if (Modifier.isFinal(modifiers)) {
-            throw IllegalStateException("Final method can't be intercepted: $m")
+            throw IllegalArgumentException("Final method can't be intercepted: $m")
         }
     }
 
