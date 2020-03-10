@@ -75,6 +75,13 @@ might be difficult to use in Java. I recommend always use the library with Kotli
 There's no plan to support Java API, because the type system of Java is much different from that of Kotlin. I don't
 want to put more effort on Java.
 
-## Getting Started
+## User Guide
 
-Please read the document [here](doc/getting_started.md).
+* [Getting started](doc/getting_started.md)
+* [Features and examples](doc/features.md)
+* [Architecture design](doc/design.md)
+* [Extension](doc/extension.md)
+* [Demo: Write a custom binder](doc/custom_binder.md)
+* [Demo: Extend request scope](doc/request_scope.md)
+* [Demo: AOP and metric](doc/aop_metric.md)
+
