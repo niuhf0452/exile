@@ -31,3 +31,11 @@ sonarqube {
         property("sonar.host.url", "https://sonarcloud.io")
     }
 }
+
+subprojects {
+    if (name.contains("-examples-")) {
+        sonarqube {
+            isSkipProject = true
+        }
+    }
+}

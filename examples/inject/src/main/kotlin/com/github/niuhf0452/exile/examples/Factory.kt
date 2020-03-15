@@ -18,4 +18,5 @@ fun main() {
             .build()
     val userRepository = injector.getInstance(UserRepository::class,
             qualifiers = listOf(Qualifiers.named("factory-injected")))
+    userRepository.findUser("chao.ma@example.com")
 }

@@ -6,5 +6,6 @@ fun defineModule(path: String, name: String = path.replace('/', '-')) {
 }
 
 defineModule("inject")
+defineModule("config")
 defineModule("core")
 defineModule("examples/inject")

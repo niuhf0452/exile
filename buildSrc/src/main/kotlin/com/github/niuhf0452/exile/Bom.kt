@@ -12,6 +12,9 @@ object Vers {
     const val kotlin_test = "3.3.0"
     const val classgraph = "4.8.65"
     const val bytebuddy = "1.10.8"
+    const val antlr = "4.7.2"
+    const val slf4j = "1.7.30"
+    const val log4j = "2.13.1"
 }
 
 object Bom {
@@ -22,7 +25,10 @@ object Bom {
     const val `kotlintest-runner-junit5` = "io.kotlintest:kotlintest-runner-junit5:${Vers.kotlin_test}"
     const val classgraph = "io.github.classgraph:classgraph:${Vers.classgraph}"
     const val `byte-buddy` = "net.bytebuddy:byte-buddy:${Vers.bytebuddy}"
+    const val antlr = "org.antlr:antlr4:${Vers.antlr}"
     const val guava = "com.google.guava:guava:${Vers.guava}"
+    const val `slf4j-api` = "org.slf4j:slf4j-api:${Vers.slf4j}"
+    const val `log4j-slf4j-impl` = "org.apache.logging.log4j:log4j-slf4j-impl:${Vers.log4j}"
 }
 
 val Project.bom: Bom
