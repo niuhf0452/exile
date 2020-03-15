@@ -1,10 +1,11 @@
 package com.github.niuhf0452.exile.config.impl
 
 import com.github.niuhf0452.exile.config.Config
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 object Util {
-    val log = LoggerFactory.getLogger(Config::class.java)
+    val log: Logger = LoggerFactory.getLogger(Config::class.java)
 
     val configPathRegex = "^[a-zA-Z0-9_]+(\\.[a-zA-Z0-9_]+)*$".toRegex()
 
@@ -24,5 +25,20 @@ object Util {
             sb.append(hexTable[i and 0x0f])
         }
         return sb.toString()
+    }
+
+    fun getActiveProfiles(): List<String> {
+        val active = System.getProperty("config.profiles.active")
+                ?: System.getenv("CONFIG_PROFILES_ACTIVE")
+        if (active == null || active.isBlank()) {
+            return emptyList()
+        }
+        return active.split(',').map(String::trim)
+    }
+
+    fun getConfigFile(): String {
+        return System.getProperty("config.file")
+                ?: System.getenv("CONFIG_FILE")
+                ?: "/application.*"
     }
 }

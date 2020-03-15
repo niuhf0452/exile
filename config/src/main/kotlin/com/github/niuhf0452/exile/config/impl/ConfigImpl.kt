@@ -4,8 +4,6 @@ import com.github.niuhf0452.exile.config.Config
 import com.github.niuhf0452.exile.config.ConfigException
 import com.github.niuhf0452.exile.config.ConfigFragment
 import com.github.niuhf0452.exile.config.ConfigValue
-import com.github.niuhf0452.exile.config.impl.Util.log
-import java.io.File
 import java.net.URL
 import java.util.*
 
@@ -185,86 +183,8 @@ class ConfigImpl(
             return this
         }
 
-        override fun autoConfigure(configFile: String?, activeProfiles: List<String>?): Config.Builder {
-            val configFile0 = configFile
-                    ?: System.getProperty("config.file")
-                    ?: System.getenv("CONFIG_FILE")
-                    ?: "/application.*"
-            val activeProfiles0 = activeProfiles
-                    ?: getActiveProfiles()
-            return from(AutoConfigurator().config(configFile0, activeProfiles0))
-        }
-
-        private fun getActiveProfiles(): List<String> {
-            val activeProfiles = System.getProperty("config.profiles.active")
-                    ?: System.getenv("CONFIG_PROFILES_ACTIVE")
-            if (activeProfiles == null || activeProfiles.isBlank()) {
-                return emptyList()
-            }
-            return activeProfiles.split(',').map(String::trim)
-        }
-
         override fun build(): Config {
             return ConfigImpl(source, resolver)
-        }
-    }
-
-    private class AutoConfigurator {
-        private val builder = Builder()
-        private val appliedProfiles = mutableListOf<String>()
-
-        fun config(configFile: String, activeProfiles: List<String>): Config.Source {
-            builder.fromResource("/application.init.properties", Config.Order.OVERWRITE)
-            builder.fromResource(configFile, Config.Order.OVERWRITE)
-            if (File(configFile).exists()) {
-                builder.fromFile(configFile, Config.Order.OVERWRITE)
-            }
-            var config = builder.build()
-            config.getList("config.include").forEach { path ->
-                builder.fromResource(path, Config.Order.OVERWRITE)
-            }
-            config = builder.build()
-            loadProfile(config, config)
-            activeProfiles.forEach { name ->
-                if (name.isNotBlank()) {
-                    val fragment = config.getFragment("config.profiles.${name.trim()}")
-                    loadProfile(config, fragment)
-                }
-            }
-            log.info("Active profiles: ${reduceAppliedProfiles().joinToString(", ")}")
-            return ListSource(builder.build().toList())
-        }
-
-        private fun loadProfile(config: Config, profileFragment: ConfigFragment) {
-            profileFragment.find("config.profiles.inherit")
-                    ?.asList()
-                    ?.forEach { name ->
-                        log.debug("Apply profile: $name")
-                        val fragment = config.getFragment("config.profiles.$name", keepPrefix = false)
-                        loadProfile(config, fragment)
-                        appliedProfiles.add(name)
-                    }
-            builder.from(ListSource(profileFragment), Config.Order.OVERWRITE)
-        }
-
-        private fun reduceAppliedProfiles(): List<String> {
-            val profiles = mutableListOf<String>()
-            val reduceSet = mutableSetOf<String>()
-            appliedProfiles.asReversed().forEach { name ->
-                if (reduceSet.add(name)) {
-                    profiles.add(name)
-                }
-            }
-            profiles.reverse()
-            return profiles
-        }
-    }
-
-    private class ListSource(
-            private val values: Iterable<ConfigValue>
-    ) : Config.Source {
-        override fun load(): Iterable<ConfigValue> {
-            return values
         }
     }
 }

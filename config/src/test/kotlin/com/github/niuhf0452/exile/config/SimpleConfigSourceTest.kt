@@ -22,7 +22,7 @@ class SimpleConfigSourceTest : FunSpec({
             |  }
             |  }
         """.trimMargin())
-        Util.matcher()
+        ConfigMatcher()
                 .append("text", "abc")
                 .append("int", "1")
                 .append("section1.child1.value", "}}}")

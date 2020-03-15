@@ -1,7 +1,6 @@
 package com.github.niuhf0452.exile.config
 
-import com.github.niuhf0452.exile.config.impl.ConfigImpl
-import com.github.niuhf0452.exile.config.impl.ConfigMapperImpl
+import com.github.niuhf0452.exile.config.impl.*
 import java.net.URL
 import java.util.*
 import kotlin.reflect.KClass
@@ -94,8 +93,6 @@ interface Config : ConfigFragment {
 
         fun addResolver(resolver: ValueResolver): Builder
 
-        fun autoConfigure(configFile: String? = null, activeProfiles: List<String>? = null): Builder
-
         fun build(): Config
     }
 
@@ -141,3 +138,11 @@ interface ConfigMapper {
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.RUNTIME)
 annotation class Configuration(val value: String)
+
+fun Config.Builder.autoConfigure(
+        configFile: String = Util.getConfigFile(),
+        activeProfiles: List<String> = Util.getActiveProfiles(),
+        overwrite: Config.Source = EmptyConfig.EmptySource
+): Config.Builder {
+    return from(AutoConfigurator().config(configFile, activeProfiles, overwrite))
+}

@@ -78,11 +78,11 @@ class ConfigTest : FunSpec({
                     foo.bar = 123
                 """.trimIndent())
                 .build()
-        Util.matcher()
+        ConfigMatcher()
                 .append("string", "abc")
                 .append("int", "123")
                 .shouldMatch(config.getFragment("test"))
-        Util.matcher()
+        ConfigMatcher()
                 .append("test.string", "abc")
                 .append("test.int", "123")
                 .shouldMatch(config.getFragment("test", keepPrefix = true))

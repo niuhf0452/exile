@@ -8,6 +8,7 @@ object Vers {
     const val kotlin = "1.3.70"
     const val kotlinx_io = "0.1.16"
     const val kotlinx_serialization = "0.20.0"
+    const val kotlinx_coroutines = "1.3.4"
     const val guava = "28.2-jre"
     const val kotlin_test = "3.3.0"
     const val classgraph = "4.8.65"
@@ -15,6 +16,7 @@ object Vers {
     const val antlr = "4.7.2"
     const val slf4j = "1.7.30"
     const val log4j = "2.13.1"
+    const val wiremock = "2.26.3"
 }
 
 object Bom {
@@ -22,6 +24,8 @@ object Bom {
     const val `kotlin-reflect` = "org.jetbrains.kotlin:kotlin-reflect:${Vers.kotlin}"
     const val `kotlinx-serialization` = "org.jetbrains.kotlinx:kotlinx-serialization-runtime:${Vers.kotlinx_serialization}"
     const val `kotlinx-io` = "org.jetbrains.kotlinx:kotlinx-io-jvm:${Vers.kotlinx_io}"
+    const val `kotlinx-coroutines-slf4j` = "org.jetbrains.kotlinx:kotlinx-coroutines-slf4j:${Vers.kotlinx_coroutines}"
+    const val `kotlinx-coroutines-core` = "org.jetbrains.kotlinx:kotlinx-coroutines-core:${Vers.kotlinx_coroutines}"
     const val `kotlintest-runner-junit5` = "io.kotlintest:kotlintest-runner-junit5:${Vers.kotlin_test}"
     const val classgraph = "io.github.classgraph:classgraph:${Vers.classgraph}"
     const val `byte-buddy` = "net.bytebuddy:byte-buddy:${Vers.bytebuddy}"
@@ -29,6 +33,9 @@ object Bom {
     const val guava = "com.google.guava:guava:${Vers.guava}"
     const val `slf4j-api` = "org.slf4j:slf4j-api:${Vers.slf4j}"
     const val `log4j-slf4j-impl` = "org.apache.logging.log4j:log4j-slf4j-impl:${Vers.log4j}"
+    const val `log4j-1-2-api` = "org.apache.logging.log4j:log4j-1.2-api:${Vers.log4j}"
+    const val `log4j-jul` = "org.apache.logging.log4j:log4j-jul:${Vers.log4j}"
+    const val `wiremock-jre8` = "com.github.tomakehurst:wiremock-jre8:${Vers.wiremock}"
 }
 
 val Project.bom: Bom

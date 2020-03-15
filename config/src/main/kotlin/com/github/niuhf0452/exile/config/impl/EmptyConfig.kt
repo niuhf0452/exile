@@ -22,4 +22,14 @@ object EmptyConfig : Config {
     }
 
     override fun reload() = Unit
+
+    object EmptySource : Config.Source {
+        override fun load(): Iterable<ConfigValue> {
+            return emptyList()
+        }
+
+        override fun toString(): String {
+            return "EmptySource"
+        }
+    }
 }

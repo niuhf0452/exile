@@ -1,0 +1,144 @@
+{
+  "mappings": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/v1/auth/kubernetes/login",
+        "headers": {
+          "X-Vault-Namespace": {
+            "equalTo": "namespace"
+          }
+        },
+        "bodyPatterns": [
+          {
+            "equalToJson": "{ \"role\": \"role\", \"jwt\": \"jwt_token\" }"
+          }
+        ]
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "jsonBody": {
+          "request_id": "3b23975f-d6a3-4848-8ec6-da6545b2c573",
+          "lease_id": "",
+          "renewable": false,
+          "lease_duration": 0,
+          "data": null,
+          "wrap_info": null,
+          "warnings": null,
+          "auth": {
+            "client_token": "token",
+            "accessor": "accessor",
+            "policies": [
+              "default"
+            ],
+            "token_policies": [
+              "default"
+            ],
+            "metadata": {
+              "role": "role",
+              "service_account_name": "default",
+              "service_account_namespace": "test",
+              "service_account_secret_name": "secret",
+              "service_account_uid": "d049701a-b296-4be3-a587-0602c86655c7"
+            },
+            "lease_duration": 2764800,
+            "renewable": true,
+            "entity_id": "9a10f5c2-eceb-41a5-8ca5-ee8a14ed1800",
+            "token_type": "service",
+            "orphan": true
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/v1/auth/approle/login",
+        "headers": {
+          "X-Vault-Namespace": {
+            "equalTo": "namespace"
+          }
+        },
+        "bodyPatterns": [
+          {
+            "equalToJson": "{ \"role_id\": \"role-id\", \"secret_id\": \"secret-id\" }"
+          }
+        ]
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "jsonBody": {
+          "request_id": "3b23975f-d6a3-4848-8ec6-da6545b2c573",
+          "lease_id": "",
+          "renewable": false,
+          "lease_duration": 0,
+          "data": null,
+          "wrap_info": null,
+          "warnings": null,
+          "auth": {
+            "client_token": "token",
+            "accessor": "accessor",
+            "policies": [
+              "default"
+            ],
+            "token_policies": [
+              "default"
+            ],
+            "metadata": {},
+            "lease_duration": 2764800,
+            "renewable": true,
+            "entity_id": "9a10f5c2-eceb-41a5-8ca5-ee8a14ed1800",
+            "token_type": "service",
+            "orphan": true
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/v1/kv/data/test",
+        "headers": {
+          "X-Vault-Namespace": {
+            "equalTo": "namespace"
+          },
+          "X-Vault-Token": {
+            "equalTo": "token"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "jsonBody": {
+          "request_id": "bf350b9f-4ebf-46b2-8867-cf695228ae44",
+          "lease_id": "",
+          "renewable": false,
+          "lease_duration": 0,
+          "data": {
+            "data": {
+              "vault-value": "123"
+            },
+            "metadata": {
+              "created_time": "2020-03-15T16:32:00.000Z",
+              "deletion_time": "",
+              "destroyed": false,
+              "version": 2
+            }
+          },
+          "wrap_info": null,
+          "warnings": null,
+          "auth": null
+        }
+      }
+    }
+  ]
+}

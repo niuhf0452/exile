@@ -12,7 +12,7 @@ class PropertiesSourceTest : FunSpec({
         props["test"] = "abc"
         props["foo.bar"] = 123
         val config = Config.newBuilder().fromProperties(props).build()
-        Util.matcher()
+        ConfigMatcher()
                 .append("test", "abc")
                 .append("foo.bar", "123")
                 .shouldMatch(config)
