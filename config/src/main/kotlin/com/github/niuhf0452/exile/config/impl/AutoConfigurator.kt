@@ -1,13 +1,12 @@
 package com.github.niuhf0452.exile.config.impl
 
-import com.github.niuhf0452.exile.config.*
+import com.github.niuhf0452.exile.config.Config
+import com.github.niuhf0452.exile.config.ConfigFragment
+import com.github.niuhf0452.exile.config.ConfigValue
 import com.github.niuhf0452.exile.config.impl.Util.log
-import kotlinx.serialization.ImplicitReflectionSerializer
-import kotlinx.serialization.serializer
 import java.io.File
-import kotlin.reflect.KClass
-import kotlin.reflect.full.isSubclassOf
-import kotlin.reflect.full.primaryConstructor
+import java.net.URI
+import java.net.URLEncoder
 
 class AutoConfigurator {
     private val builder = ConfigImpl.Builder()
@@ -27,17 +26,10 @@ class AutoConfigurator {
         config = builder.build()
         loadProfiles(config, activeProfiles)
         config = builder.build()
-        val composite = CompositeSource.newSource()
-        composite.addSource(ListSource(config.toList()))
-        config.getMapKeys("config.sources").forEach { key ->
-            val sourceConfig = config.getFragment("config.sources.$key", keepPrefix = false)
-            if (sourceConfig.getBoolean("enable")) {
-                val source = loadSource(sourceConfig)
-                composite.addSource(source)
-            }
-        }
-        composite.addSource(ListSource(config.toList()))
-        return composite
+        val output = ConfigImpl.Builder()
+        output.from(ListSource(config.toList()), Config.Order.OVERWRITE)
+        loadSources(output, config)
+        return output.source()
     }
 
     private fun loadProfiles(config: Config, activeProfiles: List<String>) {
@@ -80,37 +72,27 @@ class AutoConfigurator {
         return profiles
     }
 
-    @OptIn(ImplicitReflectionSerializer::class)
-    private fun loadSource(config: ConfigFragment): Config.Source {
-        val className = config.getString("class")
-        val sourceClass = try {
-            Class.forName(className).kotlin
-        } catch (ex: Exception) {
-            throw ConfigException("Config source can't be loaded: $className", ex)
-        }
-        if (!sourceClass.isSubclassOf(Config.Source::class)) {
-            throw ConfigException("Config source doesn't implement the interface Config.Source: $className")
-        }
-        val constructor = sourceClass.primaryConstructor
-                ?: throw ConfigException("Config source must have a primary constructor: $sourceClass")
-        val source = when (constructor.parameters.size) {
-            0 -> constructor.call()
-            1 -> {
-                val parameter = constructor.parameters.first()
-                val configClass = parameter.type.classifier as? KClass<*>
-                        ?: throw ConfigException("Config source has unsupported constructor parameter type: $parameter")
-                val value = try {
-                    config.parse(configClass.serializer())
-                } catch (ex: Exception) {
-                    throw ConfigException("Config source constructor parameter can't be deserialize: $parameter", ex)
-                }
-                constructor.call(value)
-            }
-            else -> {
-                throw ConfigException("Config source constructor must have zero or one parameter: $constructor")
+    private fun loadSources(builder: Config.Builder, config: ConfigFragment) {
+        config.getMapKeys("config.sources").map { key ->
+            config.getFragment("config.sources.$key", keepPrefix = false)
+        }.sortedBy { sourceConfig ->
+            sourceConfig.find("order")?.asInt() ?: 0
+        }.forEach { sourceConfig ->
+            val enable = sourceConfig.find("enable")
+                    ?.asBoolean()
+                    ?: true
+            if (enable) {
+                builder.from(makeSourceUri(sourceConfig), Config.Order.OVERWRITE)
             }
         }
-        return source as Config.Source
+    }
+
+    private fun makeSourceUri(config: ConfigFragment): URI {
+        val fragment = config.getFragment("query", keepPrefix = false)
+        val qs = fragment.joinToString("&") { (_, k, v) ->
+            "${URLEncoder.encode(k, Charsets.UTF_8)}=${URLEncoder.encode(v, Charsets.UTF_8)}"
+        }
+        return URI.create(config.getString("uri") + "?" + qs)
     }
 
     private class ListSource(

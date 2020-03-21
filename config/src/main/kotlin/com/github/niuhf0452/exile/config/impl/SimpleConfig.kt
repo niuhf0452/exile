@@ -1,6 +1,5 @@
 package com.github.niuhf0452.exile.config.impl
 
-import com.github.niuhf0452.exile.config.Config
 import com.github.niuhf0452.exile.config.ConfigFragment
 import com.github.niuhf0452.exile.config.ConfigValue
 import kotlinx.serialization.*
@@ -9,6 +8,7 @@ import kotlinx.serialization.internal.TaggedDecoder
 import kotlinx.serialization.internal.TaggedEncoder
 import kotlinx.serialization.modules.EmptyModule
 import kotlinx.serialization.modules.SerialModule
+import java.net.URI
 import java.util.*
 
 class SimpleConfig(
@@ -18,9 +18,9 @@ class SimpleConfig(
         return ClassDecoder(conf, "").decode(serial)
     }
 
-    fun <T> toConfig(data: T, serial: SerializationStrategy<T>): ConfigFragment {
+    fun <T> toConfig(data: T, serial: SerializationStrategy<T>, location: URI): ConfigFragment {
         val map = TreeMap<String, ConfigValue>()
-        val encoder = ClassEncoder(map, EmptyConfig.EmptySource, "")
+        val encoder = ClassEncoder(map, location, "")
         encoder.encode(serial, data)
         return ConfigFragmentImpl(map)
     }
@@ -28,7 +28,7 @@ class SimpleConfig(
     @OptIn(InternalSerializationApi::class)
     private inner class ClassEncoder(
             private val map: MutableMap<String, ConfigValue>,
-            private val source: Config.Source,
+            private val location: URI,
             private val prefix: String
     ) : TaggedEncoder<String>() {
         override val context: SerialModule
@@ -40,7 +40,7 @@ class SimpleConfig(
 
         override fun encodeTaggedValue(tag: String, value: Any) {
             val path = if (prefix.isEmpty()) tag else "$prefix.$tag"
-            map[path] = ConfigValue(source, path, value.toString())
+            map[path] = ConfigValue(location, path, value.toString())
         }
 
         override fun beginStructure(descriptor: SerialDescriptor, vararg typeSerializers: KSerializer<*>): CompositeEncoder {
@@ -51,9 +51,9 @@ class SimpleConfig(
                 else -> "$prefix.$tag"
             }
             return when (descriptor.kind) {
-                StructureKind.CLASS, StructureKind.OBJECT -> ClassEncoder(map, source, path)
-                StructureKind.LIST -> ListEncoder(map, source, path)
-                StructureKind.MAP -> MapEncoder(map, source, path)
+                StructureKind.CLASS, StructureKind.OBJECT -> ClassEncoder(map, location, path)
+                StructureKind.LIST -> ListEncoder(map, location, path)
+                StructureKind.MAP -> MapEncoder(map, location, path)
                 else -> throw IllegalStateException()
             }
         }
@@ -62,7 +62,7 @@ class SimpleConfig(
     @OptIn(InternalSerializationApi::class)
     private inner class ListEncoder(
             private val map: MutableMap<String, ConfigValue>,
-            private val source: Config.Source,
+            private val location: URI,
             private val prefix: String
     ) : TaggedEncoder<Int>() {
         override fun SerialDescriptor.getTag(index: Int): Int {
@@ -71,15 +71,15 @@ class SimpleConfig(
 
         override fun encodeTaggedValue(tag: Int, value: Any) {
             val path = if (prefix.isEmpty()) tag.toString() else "$prefix.$tag"
-            map[path] = ConfigValue(source, path, value.toString())
+            map[path] = ConfigValue(location, path, value.toString())
         }
 
         override fun beginStructure(descriptor: SerialDescriptor, vararg typeSerializers: KSerializer<*>): CompositeEncoder {
             val path = if (prefix.isEmpty()) currentTag.toString() else "$prefix.$currentTag"
             return when (descriptor.kind) {
-                StructureKind.CLASS, StructureKind.OBJECT -> ClassEncoder(map, source, path)
-                StructureKind.LIST -> ListEncoder(map, source, path)
-                StructureKind.MAP -> MapEncoder(map, source, path)
+                StructureKind.CLASS, StructureKind.OBJECT -> ClassEncoder(map, location, path)
+                StructureKind.LIST -> ListEncoder(map, location, path)
+                StructureKind.MAP -> MapEncoder(map, location, path)
                 else -> throw IllegalStateException()
             }
         }
@@ -88,7 +88,7 @@ class SimpleConfig(
     @OptIn(InternalSerializationApi::class)
     private inner class MapEncoder(
             private val map: MutableMap<String, ConfigValue>,
-            private val source: Config.Source,
+            private val location: URI,
             private val prefix: String
     ) : TaggedEncoder<Int>() {
         private var key: String = ""
@@ -102,7 +102,7 @@ class SimpleConfig(
                 key = value.toString()
             } else {
                 val path = if (prefix.isEmpty()) key else "$prefix.$key"
-                map[path] = ConfigValue(source, path, value.toString())
+                map[path] = ConfigValue(location, path, value.toString())
             }
         }
 
@@ -112,9 +112,9 @@ class SimpleConfig(
             }
             val path = if (prefix.isEmpty()) key else "$prefix.$key"
             return when (descriptor.kind) {
-                StructureKind.CLASS, StructureKind.OBJECT -> ClassEncoder(map, source, path)
-                StructureKind.LIST -> ListEncoder(map, source, path)
-                StructureKind.MAP -> MapEncoder(map, source, path)
+                StructureKind.CLASS, StructureKind.OBJECT -> ClassEncoder(map, location, path)
+                StructureKind.LIST -> ListEncoder(map, location, path)
+                StructureKind.MAP -> MapEncoder(map, location, path)
                 else -> throw IllegalStateException()
             }
         }
@@ -248,7 +248,7 @@ class SimpleConfig(
         override fun getValue(tag: Int): ConfigValue {
             val key = keys[tag / 2]
             if (tag % 2 == 0) {
-                return ConfigValue(EmptyConfig.EmptySource, key, key)
+                return ConfigValue(EmptyConfig.location, key, key)
             }
             val path = if (prefix.isEmpty()) key else "$prefix.$key"
             return config.get(path)

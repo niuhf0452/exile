@@ -56,7 +56,7 @@ class FileSourceTest : FunSpec({
     }
 
     test("A ResourceSource should implement toString") {
-        FileSource(javaClass.getResource("/test.conf"))
+        FileSource(javaClass.getResource("/test.conf").toURI())
                 .toString() shouldStartWith "FileSource"
     }
 

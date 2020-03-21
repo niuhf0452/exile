@@ -2,40 +2,41 @@ package com.github.niuhf0452.exile.config.source
 
 import com.github.niuhf0452.exile.config.Config
 import com.github.niuhf0452.exile.config.ConfigException
+import com.github.niuhf0452.exile.config.ConfigSourceLoader
 import com.github.niuhf0452.exile.config.ConfigValue
-import com.github.niuhf0452.exile.config.impl.Util.log
 import com.github.niuhf0452.exile.config.impl.SimpleConfigParser
+import com.github.niuhf0452.exile.config.impl.Util.log
 import java.io.InputStream
-import java.net.URL
+import java.net.URI
 import java.util.*
 
 class FileSource(
-        private val url: URL,
-        private val fileType: FileType = getFileType(url)
+        private val location: URI,
+        private val fileType: FileType = getFileType(location)
 ) : Config.Source {
     override fun load(): Iterable<ConfigValue> {
-        log.info("Load config from file: $fileType, $url")
+        log.info("Load config from file: $fileType, $location")
         val values = mutableListOf<ConfigValue>()
-        url.openStream().use { input ->
+        location.toURL().openStream().use { input ->
             fileType.parse(input).forEach { (p, v) ->
-                values.add(ConfigValue(this, p, v))
+                values.add(ConfigValue(location, p, v))
             }
         }
         return values
     }
 
     override fun toString(): String {
-        return "FileSource($url)"
+        return "FileSource($location)"
     }
 
     companion object {
         val supportedFileTypes = listOf(FileType.CONF, FileType.PROPERTIES)
 
-        fun getFileType(url: URL): FileType {
-            val path = url.path
+        fun getFileType(uri: URI): FileType {
+            val path = uri.path
             return supportedFileTypes.find { ft ->
                 path.endsWith("." + ft.ext)
-            } ?: throw ConfigException("Config file type is not supported: $url")
+            } ?: throw ConfigException("Config file type is not supported: $uri")
         }
     }
 
@@ -68,5 +69,18 @@ class FileSource(
         };
 
         abstract val ext: String
+    }
+
+    class Loader : ConfigSourceLoader {
+        override fun load(uri: URI): Config.Source? {
+            if (uri.scheme == "file" || uri.scheme == "http") {
+                return try {
+                    FileSource(uri)
+                } catch (ex: Exception) {
+                    null
+                }
+            }
+            return null
+        }
     }
 }

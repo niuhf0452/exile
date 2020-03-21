@@ -1,9 +1,8 @@
 package com.github.niuhf0452.exile.config.source
 
-import com.github.niuhf0452.exile.config.Config
-import com.github.niuhf0452.exile.config.ConfigException
-import com.github.niuhf0452.exile.config.ConfigValue
-import com.github.niuhf0452.exile.config.VaultConfig
+import com.github.niuhf0452.exile.config.*
+import com.github.niuhf0452.exile.config.impl.ConfigFragmentImpl
+import com.github.niuhf0452.exile.config.impl.Util
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UnstableDefault
@@ -16,6 +15,7 @@ import java.net.http.HttpResponse
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.time.Duration
+import java.util.*
 
 @OptIn(UnstableDefault::class)
 class VaultSource(
@@ -24,7 +24,8 @@ class VaultSource(
     override fun load(): Iterable<ConfigValue> {
         val token = login()
         val values = loadValues(token)
-        return values.map { (k, v) -> ConfigValue(this, k, v) }
+        val location = URI.create(config.url)
+        return values.map { (k, v) -> ConfigValue(location, k, v) }
     }
 
     private fun login(): String {
@@ -92,6 +93,25 @@ class VaultSource(
         val responseJson = request(URI.create(config.url), token = token)
         val response = json.parse(KvResponse.serializer(), responseJson)
         return response.data.data
+    }
+
+    class Loader : ConfigSourceLoader {
+        override fun load(uri: URI): Config.Source? {
+            if (uri.scheme == "vault") {
+                val values = TreeMap<String, ConfigValue>()
+                val location = uri.path.substring(1)
+                val defaultValues = Config.toConfig(VaultConfig.serializer(), VaultConfig(url = location))
+                defaultValues.forEach { value ->
+                    values[value.path] = value
+                }
+                uri.rawQuery?.let(Util::parseQueryString)?.forEach { (k, v) ->
+                    values[k] = ConfigValue(uri, k, v)
+                }
+                val config = ConfigFragmentImpl(values)
+                return VaultSource(config.parse(VaultConfig.serializer()))
+            }
+            return null
+        }
     }
 
     companion object {

@@ -1,11 +1,14 @@
 package com.github.niuhf0452.exile.config.source
 
 import com.github.niuhf0452.exile.config.Config
+import com.github.niuhf0452.exile.config.ConfigSourceLoader
 import com.github.niuhf0452.exile.config.ConfigValue
+import com.github.niuhf0452.exile.config.impl.Util
 import com.github.niuhf0452.exile.config.impl.Util.configPathRegex
 import com.github.niuhf0452.exile.config.impl.Util.log
 import com.github.niuhf0452.exile.config.impl.Util.toHexString
 import java.io.ByteArrayOutputStream
+import java.net.URI
 import java.security.MessageDigest
 import java.util.*
 
@@ -25,7 +28,7 @@ class PropertiesSource(
                 if (!configPathRegex.matches(path)) {
                     throw IllegalArgumentException("Config path is invalid: $path")
                 }
-                values.add(ConfigValue(this, path, value))
+                values.add(ConfigValue(location, path, value))
                 writer.write(path)
                 writer.write("=")
                 writer.write(value)
@@ -45,5 +48,23 @@ class PropertiesSource(
 
     override fun toString(): String {
         return "PropertiesSource($hash)"
+    }
+
+    class Loader : ConfigSourceLoader {
+        override fun load(uri: URI): Config.Source? {
+            if (uri.scheme == location.scheme) {
+                val map = uri.rawQuery
+                        ?.let(Util::parseQueryString)
+                        ?: emptyMap()
+                val props = Properties()
+                props.putAll(map)
+                return PropertiesSource(props)
+            }
+            return null
+        }
+    }
+
+    companion object {
+        val location: URI = URI.create("properties://mem")
     }
 }

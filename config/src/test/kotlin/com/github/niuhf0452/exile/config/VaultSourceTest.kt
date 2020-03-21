@@ -68,8 +68,8 @@ class VaultSourceTest : FunSpec() {
                 Files.writeString(path, "jwt_token")
                 val config = Config.newBuilder()
                         .autoConfigure("/application-test-4.*", overwrite = SimpleConfigSource("""
-                            config.sources.vault.url = $vaultUrl
-                            config.sources.vault.kubernetes.serviceTokenFile = $path
+                            config.sources.vault.uri = vault:/$vaultUrl
+                            config.sources.vault.query.kubernetes.serviceTokenFile = $path
                         """.trimIndent()))
                         .build()
                 config.getInt("vault-value") shouldBe 123

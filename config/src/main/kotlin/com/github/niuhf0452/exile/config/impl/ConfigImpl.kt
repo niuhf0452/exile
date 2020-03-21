@@ -1,11 +1,8 @@
 package com.github.niuhf0452.exile.config.impl
 
-import com.github.niuhf0452.exile.config.Config
-import com.github.niuhf0452.exile.config.ConfigException
-import com.github.niuhf0452.exile.config.ConfigFragment
-import com.github.niuhf0452.exile.config.ConfigValue
+import com.github.niuhf0452.exile.config.*
 import com.github.niuhf0452.exile.config.source.*
-import java.net.URL
+import java.net.URI
 import java.util.*
 
 class ConfigImpl(
@@ -122,6 +119,7 @@ class ConfigImpl(
     class Builder : Config.Builder {
         private val source = CompositeSource.newSource()
         private val resolver = CompositeValueResolver()
+        private val loaders = ServiceLoader.load(ConfigSourceLoader::class.java)
 
         override fun from(source: Config.Source, order: Config.Order): Config.Builder {
             this.source.addSource(source, order)
@@ -150,7 +148,7 @@ class ConfigImpl(
                 }
             } else {
                 // check file type
-                FileSource.getFileType(URL("file:/${path0}"))
+                FileSource.getFileType(URI.create("file:/${path0}"))
                 loadResource(composite, path0)
             }
             return from(composite, order)
@@ -158,11 +156,11 @@ class ConfigImpl(
 
         private fun loadResource(composite: CompositeSource, path: String) {
             for (url in javaClass.classLoader.getResources(path)) {
-                composite.addSource(FileSource(url), Config.Order.FALLBACK)
+                composite.addSource(FileSource(url.toURI()), Config.Order.FALLBACK)
             }
         }
 
-        override fun fromFile(url: URL, order: Config.Order): Config.Builder {
+        override fun fromFile(url: URI, order: Config.Order): Config.Builder {
             return from(FileSource(url), order)
         }
 
@@ -172,7 +170,7 @@ class ConfigImpl(
                 path.startsWith("/") -> path
                 else -> "${System.getProperty("user.dir")}/$path"
             }
-            return fromFile(URL("file:$path0"), order)
+            return fromFile(URI.create("file:$path0"), order)
         }
 
         override fun fromEnvironment(): Config.Builder {
@@ -183,6 +181,16 @@ class ConfigImpl(
             return from(SystemPropertiesSource())
         }
 
+        override fun from(uri: URI, order: Config.Order): Config.Builder {
+            loaders.forEach { loader ->
+                val source = loader.load(uri)
+                if (source != null) {
+                    from(source, order)
+                }
+            }
+            return this
+        }
+
         override fun addResolver(resolver: Config.ValueResolver): Config.Builder {
             this.resolver.addResolver(resolver)
             return this
@@ -190,6 +198,10 @@ class ConfigImpl(
 
         override fun build(): Config {
             return ConfigImpl(source, resolver)
+        }
+
+        fun source(): CompositeSource {
+            return source
         }
     }
 }

@@ -3,8 +3,11 @@ package com.github.niuhf0452.exile.config.impl
 import com.github.niuhf0452.exile.config.Config
 import com.github.niuhf0452.exile.config.ConfigFragment
 import com.github.niuhf0452.exile.config.ConfigValue
+import java.net.URI
 
 object EmptyConfig : Config {
+    val location: URI = URI.create("empty://mem")
+
     override fun find(path: String): ConfigValue? {
         return null
     }

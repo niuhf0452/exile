@@ -1,0 +1,6 @@
+com.github.niuhf0452.exile.config.source.EnvironmentSource$Loader
+com.github.niuhf0452.exile.config.source.SystemPropertiesSource$Loader
+com.github.niuhf0452.exile.config.source.FileSource$Loader
+com.github.niuhf0452.exile.config.source.VaultSource$Loader
+com.github.niuhf0452.exile.config.source.PropertiesSource$Loader
+com.github.niuhf0452.exile.config.source.SimpleConfigSource$Loader

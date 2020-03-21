@@ -3,11 +3,11 @@ package com.github.niuhf0452.exile.config
 import com.github.niuhf0452.exile.config.impl.*
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.SerializationStrategy
-import java.net.URL
+import java.net.URI
 import java.util.*
 import kotlin.reflect.KClass
 
-data class ConfigValue(val source: Config.Source, val path: String, val value: String) {
+data class ConfigValue(val location: URI, val path: String, val value: String) {
     fun asString() = value
 
     fun asInt() = asString().toInt()
@@ -28,7 +28,7 @@ data class ConfigValue(val source: Config.Source, val path: String, val value: S
     }
 
     override fun toString(): String {
-        return "ConfigValue($path = $value, source = $source)"
+        return "ConfigValue($path = $value, location = $location)"
     }
 }
 
@@ -87,13 +87,15 @@ interface Config : ConfigFragment {
 
         fun fromResource(path: String, order: Order = Order.OVERWRITE): Builder
 
-        fun fromFile(url: URL, order: Order = Order.OVERWRITE): Builder
+        fun fromFile(url: URI, order: Order = Order.OVERWRITE): Builder
 
         fun fromFile(path: String, order: Order = Order.OVERWRITE): Builder
 
         fun fromEnvironment(): Builder
 
         fun fromSystemProperties(): Builder
+
+        fun from(uri: URI, order: Order = Order.OVERWRITE): Builder
 
         fun addResolver(resolver: ValueResolver): Builder
 
@@ -105,6 +107,10 @@ interface Config : ConfigFragment {
             return ConfigImpl.Builder()
         }
     }
+}
+
+interface ConfigSourceLoader {
+    fun load(uri: URI): Config.Source?
 }
 
 class ConfigException(message: String, exception: Exception? = null)
@@ -159,6 +165,6 @@ fun <T> ConfigFragment.parse(serial: DeserializationStrategy<T>): T {
     return SimpleConfig().parse(this, serial)
 }
 
-fun <T> Config.Companion.toConfig(serial: SerializationStrategy<T>, data: T): ConfigFragment {
-    return SimpleConfig().toConfig(data, serial)
+fun <T> Config.Companion.toConfig(serial: SerializationStrategy<T>, data: T, location: URI = EmptyConfig.location): ConfigFragment {
+    return SimpleConfig().toConfig(data, serial, location)
 }

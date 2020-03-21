@@ -3,11 +3,12 @@ package com.github.niuhf0452.exile.config.impl
 import com.github.niuhf0452.exile.config.Config
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.net.URLDecoder
 
 object Util {
     val log: Logger = LoggerFactory.getLogger(Config::class.java)
 
-    val configPathRegex = "^[a-zA-Z0-9_]+(\\.[a-zA-Z0-9_]+)*$".toRegex()
+    val configPathRegex = "^[a-zA-Z0-9_\\-]+(\\.[a-zA-Z0-9_\\-]+)*$".toRegex()
 
     private val hexTable = CharArray(16) { i ->
         if (i < 10) {
@@ -40,5 +41,17 @@ object Util {
         return System.getProperty("config.file")
                 ?: System.getenv("CONFIG_FILE")
                 ?: "/application.*"
+    }
+
+    fun parseQueryString(queryString: String): Map<String, String> {
+        if (queryString.isEmpty()) {
+            return emptyMap()
+        }
+        val map = mutableMapOf<String, String>()
+        queryString.split('&').forEach { kv ->
+            val (k, v) = kv.split('=', limit = 2)
+            map[URLDecoder.decode(k, Charsets.UTF_8)] = URLDecoder.decode(v, Charsets.UTF_8)
+        }
+        return map
     }
 }
