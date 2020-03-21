@@ -28,6 +28,22 @@ class ConfigFragmentImpl(
         return ConfigFragmentImpl(subMap)
     }
 
+    override fun getMapKeys(path: String): Set<String> {
+        val fragment = if (path.isEmpty()) {
+            this
+        } else {
+            getFragment(path, keepPrefix = true)
+        }
+        val start = if (path.isEmpty()) 0 else path.length + 1
+        return fragment.mapTo(mutableSetOf()) { v ->
+            var end = v.path.indexOf('.', start)
+            if (end < 0) {
+                end = v.path.length
+            }
+            v.path.substring(start, end)
+        }
+    }
+
     override fun iterator(): Iterator<ConfigValue> {
         return map.values.iterator()
     }

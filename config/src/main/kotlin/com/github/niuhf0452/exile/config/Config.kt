@@ -53,6 +53,8 @@ interface ConfigFragment : Iterable<ConfigValue> {
     fun getList(path: String) = get(path).asList()
 
     fun getFragment(path: String, keepPrefix: Boolean = false): ConfigFragment
+
+    fun getMapKeys(path: String): Set<String>
 }
 
 interface Config : ConfigFragment {

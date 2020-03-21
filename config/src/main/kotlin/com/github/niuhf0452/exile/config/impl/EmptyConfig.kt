@@ -13,6 +13,10 @@ object EmptyConfig : Config {
         return this
     }
 
+    override fun getMapKeys(path: String): Set<String> {
+        return emptySet()
+    }
+
     override fun getSnapshot(): ConfigFragment {
         return this
     }

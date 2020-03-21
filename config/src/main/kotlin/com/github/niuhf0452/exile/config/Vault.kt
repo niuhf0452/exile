@@ -1,7 +1,9 @@
 package com.github.niuhf0452.exile.config
 
 import com.github.niuhf0452.exile.config.source.VaultSource
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class VaultConfig(
         val url: String,
         val namespace: String = "",
@@ -15,12 +17,14 @@ data class VaultConfig(
         TOKEN, KUBERNETES, APPROLE
     }
 
+    @Serializable
     data class Kubernetes(
             val role: String,
             val serviceTokenFile: String = "/var/run/secrets/kubernetes.io/serviceaccount/token",
             val url: String = "/v1/auth/kubernetes/login"
     )
 
+    @Serializable
     data class AppRole(
             val roleId: String,
             val secretId: String,

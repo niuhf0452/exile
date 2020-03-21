@@ -1,10 +1,13 @@
 package com.github.niuhf0452.exile.config.impl
 
-import com.github.niuhf0452.exile.config.Config
-import com.github.niuhf0452.exile.config.ConfigFragment
-import com.github.niuhf0452.exile.config.ConfigValue
+import com.github.niuhf0452.exile.config.*
 import com.github.niuhf0452.exile.config.impl.Util.log
+import kotlinx.serialization.ImplicitReflectionSerializer
+import kotlinx.serialization.serializer
 import java.io.File
+import kotlin.reflect.KClass
+import kotlin.reflect.full.isSubclassOf
+import kotlin.reflect.full.primaryConstructor
 
 class AutoConfigurator {
     private val builder = ConfigImpl.Builder()
@@ -22,6 +25,22 @@ class AutoConfigurator {
             builder.fromResource(path, Config.Order.OVERWRITE)
         }
         config = builder.build()
+        loadProfiles(config, activeProfiles)
+        config = builder.build()
+        val composite = CompositeSource.newSource()
+        composite.addSource(ListSource(config.toList()))
+        config.getMapKeys("config.sources").forEach { key ->
+            val sourceConfig = config.getFragment("config.sources.$key", keepPrefix = false)
+            if (sourceConfig.getBoolean("enable")) {
+                val source = loadSource(sourceConfig)
+                composite.addSource(source)
+            }
+        }
+        composite.addSource(ListSource(config.toList()))
+        return composite
+    }
+
+    private fun loadProfiles(config: Config, activeProfiles: List<String>) {
         loadProfile(config, config)
         activeProfiles.forEach { name ->
             if (name.isNotBlank()) {
@@ -29,8 +48,12 @@ class AutoConfigurator {
                 loadProfile(config, fragment)
             }
         }
-        log.info("Active profiles: ${reduceAppliedProfiles().joinToString(", ")}")
-        return ListSource(builder.build().toList())
+        val compact = compactActiveProfiles()
+        if (compact.isEmpty()) {
+            log.info("Active profiles: default")
+        } else {
+            log.info("Active profiles: ${compact.joinToString(", ")}")
+        }
     }
 
     private fun loadProfile(config: Config, profileFragment: ConfigFragment) {
@@ -45,7 +68,7 @@ class AutoConfigurator {
         builder.from(ListSource(profileFragment), Config.Order.OVERWRITE)
     }
 
-    private fun reduceAppliedProfiles(): List<String> {
+    private fun compactActiveProfiles(): List<String> {
         val profiles = mutableListOf<String>()
         val reduceSet = mutableSetOf<String>()
         appliedProfiles.asReversed().forEach { name ->
@@ -55,6 +78,39 @@ class AutoConfigurator {
         }
         profiles.reverse()
         return profiles
+    }
+
+    @OptIn(ImplicitReflectionSerializer::class)
+    private fun loadSource(config: ConfigFragment): Config.Source {
+        val className = config.getString("class")
+        val sourceClass = try {
+            Class.forName(className).kotlin
+        } catch (ex: Exception) {
+            throw ConfigException("Config source can't be loaded: $className", ex)
+        }
+        if (!sourceClass.isSubclassOf(Config.Source::class)) {
+            throw ConfigException("Config source doesn't implement the interface Config.Source: $className")
+        }
+        val constructor = sourceClass.primaryConstructor
+                ?: throw ConfigException("Config source must have a primary constructor: $sourceClass")
+        val source = when (constructor.parameters.size) {
+            0 -> constructor.call()
+            1 -> {
+                val parameter = constructor.parameters.first()
+                val configClass = parameter.type.classifier as? KClass<*>
+                        ?: throw ConfigException("Config source has unsupported constructor parameter type: $parameter")
+                val value = try {
+                    config.parse(configClass.serializer())
+                } catch (ex: Exception) {
+                    throw ConfigException("Config source constructor parameter can't be deserialize: $parameter", ex)
+                }
+                constructor.call(value)
+            }
+            else -> {
+                throw ConfigException("Config source constructor must have zero or one parameter: $constructor")
+            }
+        }
+        return source as Config.Source
     }
 
     private class ListSource(

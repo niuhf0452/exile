@@ -23,6 +23,10 @@ class ConfigImpl(
         return fragment.getFragment(path, keepPrefix)
     }
 
+    override fun getMapKeys(path: String): Set<String> {
+        return fragment.getMapKeys(path)
+    }
+
     override fun getSnapshot(): ConfigFragment {
         return fragment
     }

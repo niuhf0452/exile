@@ -232,16 +232,7 @@ class SimpleConfig(
             private val prefix: String
     ) : AbstractDecoder<Int>() {
         private var index = 0
-        private val keys = config.getFragment(prefix, keepPrefix = true)
-                .mapTo(mutableSetOf()) { v ->
-                    val start = if (prefix.isEmpty()) 0 else prefix.length + 1
-                    var end = v.path.indexOf('.', start)
-                    if (end < 0) {
-                        end = v.path.length
-                    }
-                    v.path.substring(start, end)
-                }
-                .toList()
+        private val keys = config.getMapKeys(prefix).toList()
 
         override fun SerialDescriptor.getTag(index: Int): Int {
             return index
