@@ -75,7 +75,7 @@ class VaultSource(
             } catch (ex: Exception) {
                 "(fail to read body)"
             }
-            throw ConfigException("Fail to login into Vault: $uri - ${response.statusCode()} - $message")
+            throw ConfigException("Fail to call Vault: $uri - ${response.statusCode()} - $message")
         }
         return response.body().readAllBytes().toString(Charsets.UTF_8)
     }
