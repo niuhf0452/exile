@@ -1,7 +1,7 @@
 package com.github.niuhf0452.exile.config
 
-import com.github.niuhf0452.exile.config.impl.EnvironmentSource
-import com.github.niuhf0452.exile.config.impl.SystemPropertiesSource
+import com.github.niuhf0452.exile.config.source.EnvironmentSource
+import com.github.niuhf0452.exile.config.source.SystemPropertiesSource
 import io.kotlintest.matchers.string.shouldStartWith
 import io.kotlintest.matchers.types.shouldNotBeNull
 import io.kotlintest.shouldBe

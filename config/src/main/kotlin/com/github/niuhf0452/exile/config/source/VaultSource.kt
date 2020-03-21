@@ -1,4 +1,4 @@
-package com.github.niuhf0452.exile.config.impl
+package com.github.niuhf0452.exile.config.source
 
 import com.github.niuhf0452.exile.config.Config
 import com.github.niuhf0452.exile.config.ConfigException
@@ -17,7 +17,7 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import java.time.Duration
 
-@UnstableDefault
+@OptIn(UnstableDefault::class)
 class VaultSource(
         private val config: VaultConfig
 ) : Config.Source {

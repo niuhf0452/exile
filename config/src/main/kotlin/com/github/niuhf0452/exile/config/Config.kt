@@ -1,6 +1,8 @@
 package com.github.niuhf0452.exile.config
 
 import com.github.niuhf0452.exile.config.impl.*
+import kotlinx.serialization.DeserializationStrategy
+import kotlinx.serialization.SerializationStrategy
 import java.net.URL
 import java.util.*
 import kotlin.reflect.KClass
@@ -103,26 +105,30 @@ interface Config : ConfigFragment {
     }
 }
 
-class ConfigException(message: String, exception: Exception? = null) : RuntimeException(message, exception)
+class ConfigException(message: String, exception: Exception? = null)
+    : RuntimeException(message, exception)
 
 interface ConfigMapper {
     fun <A : Any> get(cls: KClass<A>): A
-    fun get(name: String): Any
-    fun mappings(): List<Mapping>
+    fun get(path: String): Any
+    fun mappings(): List<Mapping<*>>
     fun reload()
 
-    interface Mapping {
+    interface Mapping<T : Any> {
         val path: String
-        val receiverClass: KClass<*>
+        val receiverClass: KClass<T>
+        val deserializer: DeserializationStrategy<T>
         val receiver: Any
     }
 
     interface Builder {
         fun config(config: Config): Builder
 
-        fun addMapping(name: String, cls: KClass<*>): Builder
+        fun <T : Any> addMapping(path: String, cls: KClass<T>, deserializer: DeserializationStrategy<T>): Builder
 
-        fun addMapping(cls: KClass<*>): Builder
+        fun <T : Any> addMapping(path: String, cls: KClass<T>): Builder
+
+        fun <T : Any> addMapping(cls: KClass<T>): Builder
 
         fun build(): ConfigMapper
     }
@@ -145,4 +151,12 @@ fun Config.Builder.autoConfigure(
         overwrite: Config.Source = EmptyConfig.EmptySource
 ): Config.Builder {
     return from(AutoConfigurator().config(configFile, activeProfiles, overwrite))
+}
+
+fun <T> ConfigFragment.parse(serial: DeserializationStrategy<T>): T {
+    return SimpleConfig().parse(this, serial)
+}
+
+fun <T> Config.Companion.toConfig(serial: SerializationStrategy<T>, data: T): ConfigFragment {
+    return SimpleConfig().toConfig(data, serial)
 }

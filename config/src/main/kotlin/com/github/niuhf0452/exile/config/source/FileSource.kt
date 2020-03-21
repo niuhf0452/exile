@@ -1,9 +1,10 @@
-package com.github.niuhf0452.exile.config.impl
+package com.github.niuhf0452.exile.config.source
 
 import com.github.niuhf0452.exile.config.Config
 import com.github.niuhf0452.exile.config.ConfigException
 import com.github.niuhf0452.exile.config.ConfigValue
 import com.github.niuhf0452.exile.config.impl.Util.log
+import com.github.niuhf0452.exile.config.impl.SimpleConfigParser
 import java.io.InputStream
 import java.net.URL
 import java.util.*

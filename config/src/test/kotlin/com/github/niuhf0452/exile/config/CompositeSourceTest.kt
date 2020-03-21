@@ -1,7 +1,7 @@
 package com.github.niuhf0452.exile.config
 
 import com.github.niuhf0452.exile.config.impl.CompositeSource
-import com.github.niuhf0452.exile.config.impl.SimpleConfigSource
+import com.github.niuhf0452.exile.config.source.SimpleConfigSource
 import io.kotlintest.matchers.string.shouldStartWith
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.FunSpec

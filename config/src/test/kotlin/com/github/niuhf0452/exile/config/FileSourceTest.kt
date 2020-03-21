@@ -1,6 +1,6 @@
 package com.github.niuhf0452.exile.config
 
-import com.github.niuhf0452.exile.config.impl.FileSource
+import com.github.niuhf0452.exile.config.source.FileSource
 import io.kotlintest.matchers.string.shouldStartWith
 import io.kotlintest.shouldThrow
 import io.kotlintest.specs.FunSpec

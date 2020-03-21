@@ -1,9 +1,10 @@
 package com.github.niuhf0452.exile.config
 
 import io.kotlintest.shouldBe
+import java.util.*
 
 class ConfigMatcher {
-    private val values = mutableMapOf<String, String>()
+    private val values = TreeMap<String, String>()
 
     fun append(name: String, value: String): ConfigMatcher {
         values[name] = value
@@ -11,7 +12,7 @@ class ConfigMatcher {
     }
 
     fun shouldMatch(values: Iterable<ConfigValue>) {
-        val map = mutableMapOf<String, String>()
+        val map = TreeMap<String, String>()
         values.forEach { v ->
             map[v.path] = v.asString()
         }

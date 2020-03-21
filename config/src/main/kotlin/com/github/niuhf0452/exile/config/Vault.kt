@@ -1,6 +1,6 @@
 package com.github.niuhf0452.exile.config
 
-import com.github.niuhf0452.exile.config.impl.VaultSource
+import com.github.niuhf0452.exile.config.source.VaultSource
 
 data class VaultConfig(
         val url: String,

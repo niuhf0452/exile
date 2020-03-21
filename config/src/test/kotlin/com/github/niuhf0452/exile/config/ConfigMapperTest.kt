@@ -1,13 +1,14 @@
 package com.github.niuhf0452.exile.config
 
 import com.github.niuhf0452.exile.config.impl.CompositeSource
-import com.github.niuhf0452.exile.config.impl.SimpleConfigSource
+import com.github.niuhf0452.exile.config.source.SimpleConfigSource
 import io.kotlintest.matchers.doubles.plusOrMinus
 import io.kotlintest.matchers.string.shouldStartWith
 import io.kotlintest.matchers.types.shouldBeSameInstanceAs
 import io.kotlintest.shouldBe
 import io.kotlintest.shouldThrow
 import io.kotlintest.specs.FunSpec
+import kotlinx.serialization.Serializable
 
 class ConfigMapperTest : FunSpec({
     val configStr = """
@@ -90,43 +91,42 @@ class ConfigMapperTest : FunSpec({
         mysqlConfig.port shouldBe 3306
     }
 
-    test("A ConfigMapper should throw if parameter is incorrect") {
-        val config = Config.newBuilder()
-                .fromString(configStr)
-                .build()
-        val mapper = ConfigMapper.newBuilder()
-                .config(config)
-                .addMapping("exile.database.mysql", MysqlConfig::class)
-                .build()
+    test("A ConfigMapper should throw if path doesn't exist") {
+        val config = Config.newBuilder().fromString(configStr).build()
+        val mapper = ConfigMapper.newBuilder().config(config).build()
 
         shouldThrow<ConfigException> {
             mapper.get("exile.database.redis")
         }
+    }
+
+    test("A ConfigMapper should throw if class doesn't exist") {
+        val config = Config.newBuilder().fromString(configStr).build()
+        val mapper = ConfigMapper.newBuilder().config(config).build()
 
         shouldThrow<ConfigException> {
             mapper.get(Options::class)
         }
+    }
+
+    test("A ConfigMapper should throw if missing @Configuration") {
+        val config = Config.newBuilder().fromString(configStr).build()
 
         shouldThrow<ConfigException> {
             ConfigMapper.newBuilder()
                     .config(config)
-                    .addMapping(RedisConfig2::class)
-                    .build()
-        }
-
-        shouldThrow<ConfigException> {
-            ConfigMapper.newBuilder()
-                    .config(config)
-                    .addMapping("redis", RedisConfig2::class)
+                    .addMapping(Options::class)
                     .build()
         }
     }
 }) {
+    @Serializable
     data class Options(val createTable: Boolean, val threadPoolSize: Int, val cacheRatio: Double)
+
+    @Serializable
     data class MysqlConfig(val host: String, val port: Int, val options: Options)
 
+    @Serializable
     @Configuration("redis")
     data class RedisConfig(val host: String, val port: Int)
-
-    class RedisConfig2(val host: String, val port: Int)
 }

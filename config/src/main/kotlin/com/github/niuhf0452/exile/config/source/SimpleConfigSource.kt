@@ -1,9 +1,10 @@
-package com.github.niuhf0452.exile.config.impl
+package com.github.niuhf0452.exile.config.source
 
 import com.github.niuhf0452.exile.config.Config
 import com.github.niuhf0452.exile.config.ConfigValue
 import com.github.niuhf0452.exile.config.impl.Util.log
 import com.github.niuhf0452.exile.config.impl.Util.toHexString
+import com.github.niuhf0452.exile.config.impl.SimpleConfigParser
 import java.security.MessageDigest
 
 class SimpleConfigSource(

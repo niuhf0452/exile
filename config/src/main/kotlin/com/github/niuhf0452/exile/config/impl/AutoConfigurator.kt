@@ -11,7 +11,7 @@ class AutoConfigurator {
     private val appliedProfiles = mutableListOf<String>()
 
     fun config(configFile: String, activeProfiles: List<String>, overwrite: Config.Source): Config.Source {
-        builder.fromResource("/application.init.properties", Config.Order.OVERWRITE)
+        builder.fromResource("/application.init.conf", Config.Order.OVERWRITE)
         builder.fromResource(configFile, Config.Order.OVERWRITE)
         if (File(configFile).exists()) {
             builder.fromFile(configFile, Config.Order.OVERWRITE)
@@ -56,10 +56,6 @@ class AutoConfigurator {
         profiles.reverse()
         return profiles
     }
-
-    private data class RootConfig(val include: List<String>, val sources: Map<String, SourceConfig>)
-
-    private data class SourceConfig(val enable: Boolean, val `class`: String, val config: ConfigFragment)
 
     private class ListSource(
             private val values: Iterable<ConfigValue>

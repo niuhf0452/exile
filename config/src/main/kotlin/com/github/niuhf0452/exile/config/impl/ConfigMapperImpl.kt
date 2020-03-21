@@ -1,31 +1,27 @@
 package com.github.niuhf0452.exile.config.impl
 
 import com.github.niuhf0452.exile.config.*
+import kotlinx.serialization.DeserializationStrategy
+import kotlinx.serialization.ImplicitReflectionSerializer
+import kotlinx.serialization.serializer
 import kotlin.reflect.KClass
 import kotlin.reflect.full.findAnnotation
-import kotlin.reflect.full.primaryConstructor
 
 class ConfigMapperImpl(
         private val config: Config,
-        mappingClasses: Map<String, KClass<*>>
+        private val mappings: List<Mapping<*>>
 ) : ConfigMapper {
-    private val byName = mutableMapOf<String, MappingImpl>()
-    private val byClass = mutableMapOf<KClass<*>, MappingImpl>()
-    private val mappings = mutableListOf<MappingImpl>()
+    private val byPath = mutableMapOf<String, Mapping<*>>()
+    private val byClass = mutableMapOf<KClass<*>, Mapping<*>>()
 
     init {
-        mappingClasses.forEach { (n, c) ->
-            if (!c.isData) {
-                throw ConfigException("Config mapping class should be data class: $c")
+        mappings.forEach { m ->
+            if (byPath.putIfAbsent(m.path, m) != null) {
+                throw IllegalArgumentException("Config name conflict: ${m.path}")
             }
-            val mapping = MappingImpl(n, c)
-            if (byName.putIfAbsent(n, mapping) != null) {
-                throw IllegalArgumentException("Config name conflict: $n")
+            if (byClass.putIfAbsent(m.receiverClass, m) != null) {
+                throw IllegalArgumentException("Config class conflict: ${m.receiverClass}")
             }
-            if (byClass.putIfAbsent(c, mapping) != null) {
-                throw IllegalArgumentException("Config class conflict: $c")
-            }
-            mappings.add(mapping)
         }
         load()
     }
@@ -37,13 +33,13 @@ class ConfigMapperImpl(
         return mapping.receiver as A
     }
 
-    override fun get(name: String): Any {
-        val mapping = byName[name]
-                ?: throw ConfigException("Config doesn't exist: $name")
+    override fun get(path: String): Any {
+        val mapping = byPath[path]
+                ?: throw ConfigException("Config mapping doesn't exist: $path")
         return mapping.receiver
     }
 
-    override fun mappings(): List<ConfigMapper.Mapping> {
+    override fun mappings(): List<ConfigMapper.Mapping<*>> {
         return mappings
     }
 
@@ -55,65 +51,46 @@ class ConfigMapperImpl(
     private fun load() {
         mappings.forEach { mapping ->
             val fragment = config.getFragment(mapping.path)
-            mapping.receiver = createObject(mapping.receiverClass, fragment)
+            mapping.setConfig(fragment)
         }
     }
 
-    private fun createObject(cls: KClass<*>, fragment: ConfigFragment): Any {
-        val constructor = cls.primaryConstructor
-                ?: throw ConfigException("Config class should have a primary constructor: $cls")
-        val args = Array(constructor.parameters.size) { i ->
-            val p = constructor.parameters[i]
-            val name = p.name
-                    ?: throw ConfigException("Config class parameter has no name: $p")
-            val pc = p.type.classifier as? KClass<*>
-                    ?: throw ConfigException("Config class parameter has unsupported type: $p")
-            if (p.type.isMarkedNullable) {
-                throw ConfigException("Config class parameter should not be nullable: $p")
-            }
-            if (pc.isData) {
-                createObject(pc, fragment.getFragment(name))
-            } else {
-                val value = fragment.get(name)
-                when (pc) {
-                    String::class -> value.asString()
-                    Int::class -> value.asInt()
-                    Long::class -> value.asLong()
-                    Boolean::class -> value.asBoolean()
-                    Double::class -> value.asDouble()
-                    else -> throw ConfigException("Config class parameter has unsupported type: $p")
-                }
-            }
-        }
-        return constructor.call(*args)
-    }
-
-    private class MappingImpl(
+    class Mapping<T : Any>(
             override val path: String,
-            override val receiverClass: KClass<*>
-    ) : ConfigMapper.Mapping {
+            override val receiverClass: KClass<T>,
+            override val deserializer: DeserializationStrategy<T>
+    ) : ConfigMapper.Mapping<T> {
         override var receiver: Any = Unit
 
         override fun toString(): String {
             return "Mapping($path, $receiver)"
         }
+
+        fun setConfig(fragment: ConfigFragment) {
+            receiver = fragment.parse(deserializer)
+        }
     }
 
     class Builder : ConfigMapper.Builder {
         private var config: Config = EmptyConfig
-        private val mappings = mutableMapOf<String, KClass<*>>()
+        private val mappings = mutableListOf<Mapping<*>>()
 
         override fun config(config: Config): ConfigMapper.Builder {
             this.config = config
             return this
         }
 
-        override fun addMapping(name: String, cls: KClass<*>): ConfigMapper.Builder {
-            mappings[name] = cls
+        override fun <T : Any> addMapping(path: String, cls: KClass<T>, deserializer: DeserializationStrategy<T>): ConfigMapper.Builder {
+            mappings.add(Mapping(path, cls, deserializer))
             return this
         }
 
-        override fun addMapping(cls: KClass<*>): ConfigMapper.Builder {
+        @OptIn(ImplicitReflectionSerializer::class)
+        override fun <T : Any> addMapping(path: String, cls: KClass<T>): ConfigMapper.Builder {
+            return addMapping(path, cls, cls.serializer())
+        }
+
+        override fun <T : Any> addMapping(cls: KClass<T>): ConfigMapper.Builder {
             val a = cls.findAnnotation<Configuration>()
                     ?: throw ConfigException("Config mapping class should be annotated with @Configuration: $cls")
             return addMapping(a.value, cls)

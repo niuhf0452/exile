@@ -1,4 +1,5 @@
 import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     idea
@@ -37,5 +38,9 @@ subprojects {
         sonarqube {
             isSkipProject = true
         }
+    }
+
+    tasks.withType<KotlinCompile>().configureEach {
+        kotlinOptions.freeCompilerArgs = listOf("-Xopt-in=kotlin.RequiresOptIn")
     }
 }

@@ -1,4 +1,4 @@
-package com.github.niuhf0452.exile.config.impl
+package com.github.niuhf0452.exile.config.source
 
 import com.github.niuhf0452.exile.config.Config
 import com.github.niuhf0452.exile.config.ConfigValue
