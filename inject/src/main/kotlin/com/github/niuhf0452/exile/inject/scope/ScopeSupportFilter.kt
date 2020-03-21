@@ -1,9 +1,7 @@
-package com.github.niuhf0452.exile.inject.impl
+package com.github.niuhf0452.exile.inject.scope
 
-import com.github.niuhf0452.exile.inject.Injector
-import com.github.niuhf0452.exile.inject.Scope
-import com.github.niuhf0452.exile.inject.ScopeQualifier
-import com.github.niuhf0452.exile.inject.TypeKey
+import com.github.niuhf0452.exile.inject.*
+import com.github.niuhf0452.exile.inject.impl.InjectorImpl
 import java.security.MessageDigest
 import kotlin.reflect.KClass
 import kotlin.reflect.full.findAnnotation
@@ -72,6 +70,12 @@ class ScopeSupportFilter : Injector.Filter {
 
         override fun toString(): String {
             return "Scoped(key = $key, qualifier = $qualifier, scope = ${scope::class}, binding = $binding)"
+        }
+    }
+
+    class Loader : InjectorAutoLoader {
+        override fun getFilters(): List<Injector.Filter> {
+            return listOf(ScopeSupportFilter())
         }
     }
 }

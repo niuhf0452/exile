@@ -1,6 +1,7 @@
 package com.github.niuhf0452.exile.config
 
 import com.github.niuhf0452.exile.config.impl.*
+import com.github.niuhf0452.exile.config.simpleconfig.SimpleConfig
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.SerializationStrategy
 import java.net.URI

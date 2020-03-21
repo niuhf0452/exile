@@ -3,10 +3,10 @@ package com.github.niuhf0452.exile.config.source
 import com.github.niuhf0452.exile.config.Config
 import com.github.niuhf0452.exile.config.ConfigSourceLoader
 import com.github.niuhf0452.exile.config.ConfigValue
-import com.github.niuhf0452.exile.config.impl.SimpleConfigParser
 import com.github.niuhf0452.exile.config.impl.Util
 import com.github.niuhf0452.exile.config.impl.Util.log
 import com.github.niuhf0452.exile.config.impl.Util.toHexString
+import com.github.niuhf0452.exile.config.simpleconfig.SimpleConfigParser
 import java.net.URI
 import java.security.MessageDigest
 

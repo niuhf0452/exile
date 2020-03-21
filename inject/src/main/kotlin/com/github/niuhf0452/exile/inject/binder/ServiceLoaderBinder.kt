@@ -1,6 +1,7 @@
-package com.github.niuhf0452.exile.inject.impl
+package com.github.niuhf0452.exile.inject.binder
 
 import com.github.niuhf0452.exile.inject.Injector
+import com.github.niuhf0452.exile.inject.InjectorAutoLoader
 import com.github.niuhf0452.exile.inject.Qualifier
 import com.github.niuhf0452.exile.inject.TypeKey
 import java.util.*
@@ -30,6 +31,12 @@ class ServiceLoaderBinder : Injector.Binder {
 
         override fun toString(): String {
             return "ServiceLoader(${provider.type()})"
+        }
+    }
+
+    class Loader: InjectorAutoLoader {
+        override fun getBinders(): List<Injector.Binder> {
+            return listOf(ServiceLoaderBinder())
         }
     }
 }

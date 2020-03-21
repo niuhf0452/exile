@@ -12,4 +12,5 @@ dependencies {
     api(bom.`kotlin-reflect`)
     implementation(bom.classgraph)
     implementation(bom.`byte-buddy`)
+    testImplementation(bom.`log4j-slf4j-impl`)
 }

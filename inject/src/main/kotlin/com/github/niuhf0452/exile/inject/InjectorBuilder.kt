@@ -1,5 +1,6 @@
 package com.github.niuhf0452.exile.inject
 
+import com.github.niuhf0452.exile.inject.impl.AutoConfigurator
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
 
@@ -41,4 +42,17 @@ interface InjectorBuilder {
 
         fun toProvider(qualifiers: List<Annotation> = emptyList(), provider: Injector.Provider)
     }
+}
+
+fun InjectorBuilder.autoConfigure(vararg packageNames: String): InjectorBuilder {
+    return AutoConfigurator(packageNames.toList(), this).configure()
+}
+
+/**
+ * This interface is used with ServiceLoader to auto config [Injector].
+ */
+interface InjectorAutoLoader {
+    fun getBinders(): List<Injector.Binder> = emptyList()
+
+    fun getFilters(): List<Injector.Filter> = emptyList()
 }

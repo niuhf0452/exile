@@ -2,7 +2,6 @@ package com.github.niuhf0452.exile.config.impl
 
 import com.github.niuhf0452.exile.config.Config
 import com.github.niuhf0452.exile.config.ConfigValue
-import org.slf4j.LoggerFactory
 import java.util.concurrent.CopyOnWriteArrayList
 
 class CompositeSource(

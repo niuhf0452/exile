@@ -1,6 +1,7 @@
-package com.github.niuhf0452.exile.inject.impl
+package com.github.niuhf0452.exile.inject.binder
 
 import com.github.niuhf0452.exile.inject.*
+import com.github.niuhf0452.exile.inject.impl.getQualifiers
 import kotlin.reflect.KClass
 import kotlin.reflect.full.allSupertypes
 import kotlin.reflect.full.findAnnotation
@@ -35,5 +36,11 @@ class AutowireBinder : Injector.Binder {
                 && !implClass.isAbstract
                 && implClass.typeParameters.isEmpty()
                 && (a == null || !a.value.contains(cls))
+    }
+
+    class Loader : InjectorAutoLoader {
+        override fun getBinders(): List<Injector.Binder> {
+            return listOf(AutowireBinder())
+        }
     }
 }

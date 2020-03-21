@@ -1,6 +1,7 @@
-package com.github.niuhf0452.exile.inject.impl
+package com.github.niuhf0452.exile.inject.binder
 
 import com.github.niuhf0452.exile.inject.*
+import com.github.niuhf0452.exile.inject.impl.getQualifiers
 import java.lang.reflect.Modifier
 import kotlin.reflect.*
 import kotlin.reflect.full.findAnnotation

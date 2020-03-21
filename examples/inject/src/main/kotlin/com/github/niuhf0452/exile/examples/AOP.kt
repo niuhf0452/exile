@@ -1,7 +1,7 @@
 package com.github.niuhf0452.exile.examples
 
 import com.github.niuhf0452.exile.inject.*
-import com.github.niuhf0452.exile.inject.impl.ByteBuddyEnhancer
+import com.github.niuhf0452.exile.inject.enhancer.ByteBuddyEnhancer
 import kotlin.reflect.KFunction
 
 fun main() {

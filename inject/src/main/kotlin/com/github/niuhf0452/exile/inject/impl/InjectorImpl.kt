@@ -1,6 +1,9 @@
 package com.github.niuhf0452.exile.inject.impl
 
 import com.github.niuhf0452.exile.inject.*
+import com.github.niuhf0452.exile.inject.binder.*
+import com.github.niuhf0452.exile.inject.enhancer.NoopEnhancer
+import com.github.niuhf0452.exile.inject.scope.ScopeSupportFilter
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.collections.ArrayList
@@ -135,6 +138,7 @@ class InjectorImpl(
             binders.add(InstantiateBinder(packageNames, enhancer, ArrayList(interceptors)))
             binders.add(NativeTypesBinder())
             val filters = ArrayList(this.filters)
+            filters.sortBy(Injector.Filter::order)
             return InjectorImpl(binders, filters, ConcurrentHashMap())
         }
     }

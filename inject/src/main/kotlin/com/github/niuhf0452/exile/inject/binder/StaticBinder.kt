@@ -1,4 +1,4 @@
-package com.github.niuhf0452.exile.inject.impl
+package com.github.niuhf0452.exile.inject.binder
 
 import com.github.niuhf0452.exile.inject.Injector
 import com.github.niuhf0452.exile.inject.InjectorBuilder

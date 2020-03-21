@@ -1,6 +1,6 @@
 package com.github.niuhf0452.exile.inject
 
-import com.github.niuhf0452.exile.inject.impl.AutowireFactoryBinder
+import com.github.niuhf0452.exile.inject.binder.AutowireFactoryBinder
 import com.github.niuhf0452.exile.test.factory0.AutowireTestInterfaceA
 import com.github.niuhf0452.exile.test.factory0.TestClassAFactory
 import com.github.niuhf0452.exile.test.factory1.TestClass

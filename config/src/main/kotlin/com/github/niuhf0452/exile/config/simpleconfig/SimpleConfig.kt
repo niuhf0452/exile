@@ -1,7 +1,9 @@
-package com.github.niuhf0452.exile.config.impl
+package com.github.niuhf0452.exile.config.simpleconfig
 
 import com.github.niuhf0452.exile.config.ConfigFragment
 import com.github.niuhf0452.exile.config.ConfigValue
+import com.github.niuhf0452.exile.config.impl.ConfigFragmentImpl
+import com.github.niuhf0452.exile.config.impl.EmptyConfig
 import kotlinx.serialization.*
 import kotlinx.serialization.CompositeDecoder.Companion.READ_DONE
 import kotlinx.serialization.internal.TaggedDecoder

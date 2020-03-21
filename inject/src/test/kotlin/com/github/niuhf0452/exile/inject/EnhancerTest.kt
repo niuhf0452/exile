@@ -1,6 +1,6 @@
 package com.github.niuhf0452.exile.inject
 
-import com.github.niuhf0452.exile.inject.impl.ByteBuddyEnhancer
+import com.github.niuhf0452.exile.inject.enhancer.ByteBuddyEnhancer
 import io.kotlintest.matchers.boolean.shouldBeFalse
 import io.kotlintest.matchers.boolean.shouldBeTrue
 import io.kotlintest.matchers.collections.shouldBeEmpty

@@ -1,6 +1,6 @@
 package com.github.niuhf0452.exile.inject
 
-import com.github.niuhf0452.exile.inject.impl.AutowireBinder
+import com.github.niuhf0452.exile.inject.binder.AutowireBinder
 import com.github.niuhf0452.exile.test.autowire.*
 import io.kotlintest.matchers.beInstanceOf
 import io.kotlintest.matchers.types.shouldBeSameInstanceAs

@@ -1,6 +1,7 @@
-package com.github.niuhf0452.exile.inject.impl
+package com.github.niuhf0452.exile.inject.binder
 
 import com.github.niuhf0452.exile.inject.*
+import com.github.niuhf0452.exile.inject.impl.getQualifiers
 import kotlin.reflect.KFunction
 import kotlin.reflect.full.declaredFunctions
 import kotlin.reflect.full.findAnnotation
@@ -101,6 +102,12 @@ class AutowireFactoryBinder : Injector.Binder {
 
         override fun toString(): String {
             return "Method($function)"
+        }
+    }
+
+    class Loader : InjectorAutoLoader {
+        override fun getBinders(): List<Injector.Binder> {
+            return listOf(AutowireFactoryBinder())
         }
     }
 }

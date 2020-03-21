@@ -1,6 +1,6 @@
 package com.github.niuhf0452.exile.inject
 
-import com.github.niuhf0452.exile.inject.impl.StaticBinder
+import com.github.niuhf0452.exile.inject.binder.StaticBinder
 import io.kotlintest.matchers.beInstanceOf
 import io.kotlintest.matchers.types.shouldBeSameInstanceAs
 import io.kotlintest.matchers.types.shouldNotBeSameInstanceAs

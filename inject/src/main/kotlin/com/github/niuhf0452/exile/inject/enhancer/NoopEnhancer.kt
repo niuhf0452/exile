@@ -1,4 +1,4 @@
-package com.github.niuhf0452.exile.inject.impl
+package com.github.niuhf0452.exile.inject.enhancer
 
 import com.github.niuhf0452.exile.inject.ClassEnhancer
 import kotlin.reflect.KClass

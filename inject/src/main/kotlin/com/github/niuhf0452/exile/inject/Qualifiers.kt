@@ -1,6 +1,6 @@
 package com.github.niuhf0452.exile.inject
 
-import com.github.niuhf0452.exile.inject.impl.SingletonScope
+import com.github.niuhf0452.exile.inject.scope.SingletonScope
 import kotlin.reflect.KClass
 import kotlin.reflect.full.primaryConstructor
 

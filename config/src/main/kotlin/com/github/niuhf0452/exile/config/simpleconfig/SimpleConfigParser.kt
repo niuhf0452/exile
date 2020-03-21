@@ -1,4 +1,4 @@
-package com.github.niuhf0452.exile.config.impl
+package com.github.niuhf0452.exile.config.simpleconfig
 
 import com.github.niuhf0452.exile.config.ConfigException
 import java.io.BufferedReader

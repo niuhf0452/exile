@@ -2,7 +2,7 @@
 
 package com.github.niuhf0452.exile.inject
 
-import com.github.niuhf0452.exile.inject.impl.AutowireBinder
+import com.github.niuhf0452.exile.inject.binder.AutowireBinder
 import com.github.niuhf0452.exile.inject.impl.InjectorImpl
 import kotlin.reflect.KClass
 
