@@ -44,12 +44,12 @@ class InstantiateBinder(
             when (bindings.size) {
                 0 -> {
                     if (!p.type.isMarkedNullable) {
-                        throw IllegalStateException("No binding for parameter: $p")
+                        throw InjectException("No binding for parameter: $p")
                     }
                     NullProvider
                 }
                 1 -> BindingProvider(bindings[0])
-                else -> throw IllegalStateException(bindings.joinToString(
+                else -> throw InjectException(bindings.joinToString(
                         "\n- ", "Multiple bindings for parameter: $p\n- "))
             }
         }
@@ -127,12 +127,12 @@ class InstantiateBinder(
 
     private fun checkModifiable(m: KFunction<*>) {
         val modifiers = m.javaMethod?.modifiers
-                ?: throw IllegalArgumentException("Can't find java method: $m")
+                ?: throw InjectException("Can't find java method: $m")
         if (!Modifier.isProtected(modifiers) && !Modifier.isPublic(modifiers)) {
-            throw IllegalArgumentException("Private or package internal method can't be intercepted: $m")
+            throw InjectException("Private or package internal method can't be intercepted: $m")
         }
         if (Modifier.isFinal(modifiers)) {
-            throw IllegalArgumentException("Final method can't be intercepted: $m")
+            throw InjectException("Final method can't be intercepted: $m")
         }
     }
 

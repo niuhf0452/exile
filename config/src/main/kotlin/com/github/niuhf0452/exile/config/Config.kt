@@ -327,14 +327,31 @@ class ConfigException(message: String, exception: Exception? = null)
  */
 interface ConfigMapper {
     /**
-     * Get a type-safe config object by type.
+     * Add a mapping.
      */
-    fun <A : Any> get(cls: KClass<A>): A
+    fun <T : Any> addMapping(path: String, cls: KClass<T>, deserializer: DeserializationStrategy<T>)
 
     /**
-     * Get a type-safe config object by path.
+     * Add a mapping.
      */
-    fun get(path: String): Any
+    fun <T : Any> addMapping(path: String, cls: KClass<T>)
+
+    /**
+     * Add a mapping.
+     */
+    fun <T : Any> addMapping(cls: KClass<T>)
+
+    /**
+     * Get a type-safe config object by type.
+     */
+    fun <A : Any> get(cls: KClass<A>): A {
+        return getMapping(cls).receiver
+    }
+
+    /**
+     * Get a mapping by type.
+     */
+    fun <A : Any> getMapping(cls: KClass<A>): Mapping<A>
 
     /**
      * Get all mappings.
@@ -370,41 +387,12 @@ interface ConfigMapper {
         /**
          * The type-safe config object.
          */
-        val receiver: Any
-    }
-
-    /**
-     * A builder of ConfigMapper.
-     *
-     * @since 1.0
-     */
-    interface Builder {
-        /**
-         * Set the backend config object.
-         */
-        fun config(config: Config): Builder
-
-        /**
-         * Add a mapping.
-         */
-        fun <T : Any> addMapping(path: String, cls: KClass<T>, deserializer: DeserializationStrategy<T>): Builder
-
-        /**
-         * Add a mapping.
-         */
-        fun <T : Any> addMapping(path: String, cls: KClass<T>): Builder
-
-        /**
-         * Add a mapping.
-         */
-        fun <T : Any> addMapping(cls: KClass<T>): Builder
-
-        fun build(): ConfigMapper
+        val receiver: T
     }
 
     companion object {
-        fun newBuilder(): Builder {
-            return ConfigMapperImpl.Builder()
+        fun newMapper(config: Config): ConfigMapper {
+            return ConfigMapperImpl(config)
         }
     }
 }

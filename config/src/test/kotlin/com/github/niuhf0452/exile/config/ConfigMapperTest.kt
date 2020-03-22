@@ -2,9 +2,9 @@ package com.github.niuhf0452.exile.config
 
 import com.github.niuhf0452.exile.config.impl.CompositeSource
 import com.github.niuhf0452.exile.config.source.SimpleConfigSource
+import io.kotlintest.matchers.collections.shouldBeEmpty
 import io.kotlintest.matchers.doubles.plusOrMinus
 import io.kotlintest.matchers.string.shouldStartWith
-import io.kotlintest.matchers.types.shouldBeSameInstanceAs
 import io.kotlintest.shouldBe
 import io.kotlintest.shouldThrow
 import io.kotlintest.specs.FunSpec
@@ -30,13 +30,9 @@ class ConfigMapperTest : FunSpec({
         val config = Config.newBuilder()
                 .fromString(configStr)
                 .build()
-        val mapper = ConfigMapper.newBuilder()
-                .config(config)
-                .addMapping("exile.database.mysql", MysqlConfig::class)
-                .addMapping(RedisConfig::class)
-                .build()
+        val mapper = ConfigMapper.newMapper(config)
+        mapper.addMapping("exile.database.mysql", MysqlConfig::class)
         val mysqlConfig = mapper.get(MysqlConfig::class)
-        mysqlConfig shouldBeSameInstanceAs mapper.get("exile.database.mysql")
         mysqlConfig.host shouldBe "localhost"
         mysqlConfig.port shouldBe 3306
         mysqlConfig.options.createTable shouldBe true
@@ -44,13 +40,27 @@ class ConfigMapperTest : FunSpec({
         mysqlConfig.options.cacheRatio shouldBe 0.7.plusOrMinus(0.0001)
 
         val mappings = mapper.mappings()
-        mappings.size shouldBe 2
+        mappings.size shouldBe 1
         mappings[0].path shouldBe "exile.database.mysql"
         mappings[0].receiverClass shouldBe MysqlConfig::class
-        mappings[1].path shouldBe "redis"
-        mappings[1].receiverClass shouldBe RedisConfig::class
-
         mappings[0].toString() shouldStartWith "Mapping"
+    }
+
+    test("A ConfigMapper can create mapping lazily") {
+        val config = Config.newBuilder()
+                .fromString(configStr)
+                .build()
+        val mapper = ConfigMapper.newMapper(config)
+        mapper.mappings().shouldBeEmpty()
+
+        val redisConfig = mapper.get(RedisConfig::class)
+        redisConfig.host shouldBe "localhost"
+        redisConfig.port shouldBe 6798
+
+        val mappings = mapper.mappings()
+        mappings.size shouldBe 1
+        mappings[0].path shouldBe "redis"
+        mappings[0].receiverClass shouldBe RedisConfig::class
     }
 
     test("A ConfigMapper can merge configurations from multiple sources") {
@@ -62,10 +72,8 @@ class ConfigMapperTest : FunSpec({
                     }
                 """.trimIndent(), Config.Order.OVERWRITE)
                 .build()
-        val mapper = ConfigMapper.newBuilder()
-                .config(config)
-                .addMapping("exile.database.mysql", MysqlConfig::class)
-                .build()
+        val mapper = ConfigMapper.newMapper(config)
+        mapper.addMapping("exile.database.mysql", MysqlConfig::class)
         val mysqlConfig = mapper.get(MysqlConfig::class)
         mysqlConfig.host shouldBe "mysql"
     }
@@ -74,10 +82,8 @@ class ConfigMapperTest : FunSpec({
         val source = CompositeSource.threadSafeSource()
         source.addSource(SimpleConfigSource(configStr))
         val config = Config.newBuilder().from(source).build()
-        val mapper = ConfigMapper.newBuilder()
-                .config(config)
-                .addMapping("exile.database.mysql", MysqlConfig::class)
-                .build()
+        val mapper = ConfigMapper.newMapper(config)
+        mapper.addMapping("exile.database.mysql", MysqlConfig::class)
         var mysqlConfig = mapper.get(MysqlConfig::class)
         mysqlConfig.host shouldBe "localhost"
         source.addSource(SimpleConfigSource("""
@@ -91,18 +97,9 @@ class ConfigMapperTest : FunSpec({
         mysqlConfig.port shouldBe 3306
     }
 
-    test("A ConfigMapper should throw if path doesn't exist") {
+    test("A ConfigMapper should throw if class doesn't have @Configuration") {
         val config = Config.newBuilder().fromString(configStr).build()
-        val mapper = ConfigMapper.newBuilder().config(config).build()
-
-        shouldThrow<ConfigException> {
-            mapper.get("exile.database.redis")
-        }
-    }
-
-    test("A ConfigMapper should throw if class doesn't exist") {
-        val config = Config.newBuilder().fromString(configStr).build()
-        val mapper = ConfigMapper.newBuilder().config(config).build()
+        val mapper = ConfigMapper.newMapper(config)
 
         shouldThrow<ConfigException> {
             mapper.get(Options::class)
@@ -113,10 +110,7 @@ class ConfigMapperTest : FunSpec({
         val config = Config.newBuilder().fromString(configStr).build()
 
         shouldThrow<ConfigException> {
-            ConfigMapper.newBuilder()
-                    .config(config)
-                    .addMapping(Options::class)
-                    .build()
+            ConfigMapper.newMapper(config).addMapping(Options::class)
         }
     }
 }) {

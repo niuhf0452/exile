@@ -36,15 +36,15 @@ class AutowireFactoryBinder : Injector.Binder {
         val scanner = context.getInstance(ClassScanner::class)
         scanner.findByAnnotation(Factory::class).forEach { factoryCls ->
             if (factoryCls.isAbstract) {
-                throw IllegalStateException("@Factory class doesn't support abstract type: $factoryCls")
+                throw InjectException("@Factory class doesn't support abstract type: $factoryCls")
             }
             if (factoryCls.typeParameters.isNotEmpty()) {
-                throw IllegalStateException("@Factory class doesn't support generic type: $factoryCls")
+                throw InjectException("@Factory class doesn't support generic type: $factoryCls")
             }
             factoryCls.declaredFunctions.forEach { f ->
                 if (f.findAnnotation<Factory>() != null) {
                     if (f.typeParameters.isNotEmpty()) {
-                        throw IllegalStateException("@Factory method doesn't support type parameter: $f")
+                        throw InjectException("@Factory method doesn't support type parameter: $f")
                     }
                     providers[TypeKey(f.returnType)] = makeProvider(f, context)
                 }
@@ -58,12 +58,12 @@ class AutowireFactoryBinder : Injector.Binder {
             when (bindings.size) {
                 0 -> {
                     if (!p.type.isMarkedNullable) {
-                        throw IllegalStateException("No binding for parameter: $p")
+                        throw InjectException("No binding for parameter: $p")
                     }
                     NullProvider
                 }
                 1 -> BindingProvider(bindings[0])
-                else -> throw IllegalStateException("Multiple bindings for parameter: $p")
+                else -> throw InjectException("Multiple bindings for parameter: $p")
             }
         }
         return MethodProvider(function, params)
@@ -97,7 +97,7 @@ class AutowireFactoryBinder : Injector.Binder {
                 function.call(*args)
             }
             return value
-                    ?: throw IllegalArgumentException("Factory method returned a null value: $function")
+                    ?: throw InjectException("Factory method returned a null value: $function")
         }
 
         override fun toString(): String {

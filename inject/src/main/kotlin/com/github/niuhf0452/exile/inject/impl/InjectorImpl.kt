@@ -173,12 +173,12 @@ class InjectorImpl(
             }
             val iterator = getBindings(implType).iterator()
             if (!iterator.hasNext()) {
-                throw IllegalStateException("No binding to implementation class, make sure " +
+                throw InjectException("No binding to implementation class, make sure " +
                         "${InstantiateBinder::class} is enabled: $implType")
             }
             val binding = iterator.next()
             if (iterator.hasNext()) {
-                throw IllegalStateException("More than one binding found for implementation class: $implType")
+                throw InjectException("More than one binding found for implementation class: $implType")
             }
             addBinding(DependencyBinding(key, qualifiers, binding))
         }
@@ -202,7 +202,7 @@ class InjectorImpl(
 
         private fun createBindings(key: TypeKey): Injector.BindingSet {
             if (backtrace.contains(key)) {
-                throw IllegalStateException(backtrace.joinToString(
+                throw InjectException(backtrace.joinToString(
                         prefix = "Cycle dependent:\n  ->",
                         separator = "\n  ->"))
             }
@@ -269,7 +269,7 @@ class InjectorImpl(
 
     private object EmptyBindingSet : Injector.BindingSet {
         override fun getSingle(qualifiers: List<Annotation>): Injector.Binding {
-            throw IllegalArgumentException("No binding, it's empty BindingSet")
+            throw InjectException("No binding, it's empty BindingSet")
         }
 
         override fun getList(qualifiers: List<Annotation>): List<Injector.Binding> {
@@ -286,7 +286,7 @@ class InjectorImpl(
     ) : Injector.BindingSet {
         override fun getSingle(qualifiers: List<Annotation>): Injector.Binding {
             if (!binding.qualifiers.containsAll(qualifiers)) {
-                throw IllegalArgumentException("No binding match the qualifiers")
+                throw InjectException("No binding match the qualifiers")
             }
             return binding
         }
@@ -322,9 +322,9 @@ class InjectorImpl(
         override fun getSingle(qualifiers: List<Annotation>): Injector.Binding {
             val iterator = iterator()
             val binding = iterator.findNext(qualifiers)
-                    ?: throw IllegalArgumentException("No binding match the qualifiers")
+                    ?: throw InjectException("No binding match the qualifiers")
             if (iterator.findNext(qualifiers) != null) {
-                throw IllegalArgumentException("More than one bindings match the qualifiers")
+                throw InjectException("More than one bindings match the qualifiers")
             }
             return binding
         }

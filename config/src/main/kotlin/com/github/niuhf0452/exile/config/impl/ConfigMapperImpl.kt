@@ -4,100 +4,71 @@ import com.github.niuhf0452.exile.config.*
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ImplicitReflectionSerializer
 import kotlinx.serialization.serializer
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass
 import kotlin.reflect.full.findAnnotation
 
 class ConfigMapperImpl(
-        private val config: Config,
-        private val mappings: List<Mapping<*>>
+        private val config: Config
 ) : ConfigMapper {
-    private val byPath = mutableMapOf<String, Mapping<*>>()
-    private val byClass = mutableMapOf<KClass<*>, Mapping<*>>()
+    private val mappings = ConcurrentHashMap<KClass<*>, Mapping<*>>()
 
-    init {
-        mappings.forEach { m ->
-            if (byPath.putIfAbsent(m.path, m) != null) {
-                throw IllegalArgumentException("Config name conflict: ${m.path}")
-            }
-            if (byClass.putIfAbsent(m.receiverClass, m) != null) {
-                throw IllegalArgumentException("Config class conflict: ${m.receiverClass}")
-            }
+    override fun <T : Any> addMapping(path: String, cls: KClass<T>, deserializer: DeserializationStrategy<T>) {
+        if (mappings.putIfAbsent(cls, Mapping(path, cls, deserializer)) != null) {
+            throw ConfigException("Config mapping of class already exists: $cls")
         }
-        load()
     }
 
-    override fun <A : Any> get(cls: KClass<A>): A {
-        val mapping = byClass[cls]
-                ?: throw ConfigException("Config for class doesn't exist: $cls")
+    @OptIn(ImplicitReflectionSerializer::class)
+    override fun <T : Any> addMapping(path: String, cls: KClass<T>) {
+        addMapping(path, cls, cls.serializer())
+    }
+
+    override fun <T : Any> addMapping(cls: KClass<T>) {
+        val a = cls.findAnnotation<Configuration>()
+                ?: throw ConfigException("Config mapping class should be annotated with @Configuration: $cls")
+        addMapping(a.value, cls)
+    }
+
+    @OptIn(ImplicitReflectionSerializer::class)
+    override fun <A : Any> getMapping(cls: KClass<A>): ConfigMapper.Mapping<A> {
+        val mapping = mappings.computeIfAbsent(cls) {
+            val path = cls.findAnnotation<Configuration>()
+                    ?.value
+                    ?: throw ConfigException("Config mapping class should be annotated with @Configuration: $cls")
+            Mapping(path, cls, cls.serializer())
+        }
         @Suppress("UNCHECKED_CAST")
-        return mapping.receiver as A
-    }
-
-    override fun get(path: String): Any {
-        val mapping = byPath[path]
-                ?: throw ConfigException("Config mapping doesn't exist: $path")
-        return mapping.receiver
+        return mapping as ConfigMapper.Mapping<A>
     }
 
     override fun mappings(): List<ConfigMapper.Mapping<*>> {
-        return mappings
+        return mappings.values.toList()
     }
 
     override fun reload() {
         config.reload()
-        load()
+        mappings.values.forEach { it.reload() }
     }
 
-    private fun load() {
-        mappings.forEach { mapping ->
-            val fragment = config.getFragment(mapping.path)
-            mapping.setConfig(fragment)
-        }
-    }
-
-    class Mapping<T : Any>(
+    private inner class Mapping<T : Any>(
             override val path: String,
             override val receiverClass: KClass<T>,
             override val deserializer: DeserializationStrategy<T>
     ) : ConfigMapper.Mapping<T> {
-        override var receiver: Any = Unit
+        override var receiver: T = load()
 
         override fun toString(): String {
             return "Mapping($path, $receiver)"
         }
 
-        fun setConfig(fragment: ConfigFragment) {
-            receiver = fragment.parse(deserializer)
-        }
-    }
-
-    class Builder : ConfigMapper.Builder {
-        private var config: Config = EmptyConfig
-        private val mappings = mutableListOf<Mapping<*>>()
-
-        override fun config(config: Config): ConfigMapper.Builder {
-            this.config = config
-            return this
+        private fun load(): T {
+            val fragment = config.getFragment(path)
+            return fragment.parse(deserializer)
         }
 
-        override fun <T : Any> addMapping(path: String, cls: KClass<T>, deserializer: DeserializationStrategy<T>): ConfigMapper.Builder {
-            mappings.add(Mapping(path, cls, deserializer))
-            return this
-        }
-
-        @OptIn(ImplicitReflectionSerializer::class)
-        override fun <T : Any> addMapping(path: String, cls: KClass<T>): ConfigMapper.Builder {
-            return addMapping(path, cls, cls.serializer())
-        }
-
-        override fun <T : Any> addMapping(cls: KClass<T>): ConfigMapper.Builder {
-            val a = cls.findAnnotation<Configuration>()
-                    ?: throw ConfigException("Config mapping class should be annotated with @Configuration: $cls")
-            return addMapping(a.value, cls)
-        }
-
-        override fun build(): ConfigMapper {
-            return ConfigMapperImpl(config, mappings)
+        fun reload() {
+            receiver = load()
         }
     }
 }

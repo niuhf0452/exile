@@ -34,7 +34,7 @@ class AutowireFactoryBinderTest : FunSpec({
                 .addPackage(TestClass::class.java.packageName)
                 .addBinder(AutowireFactoryBinder())
                 .build()
-        shouldThrow<IllegalStateException> {
+        shouldThrow<InjectException> {
             injector.getInstance(String::class)
         }
     }

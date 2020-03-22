@@ -103,11 +103,11 @@ class InstantiateBinderTest : FunSpec({
         @Inject
         abstract class TestClass
 
-        shouldThrow<IllegalArgumentException> {
+        shouldThrow<InjectException> {
             injector.getInstance(TestClass::class)
         }
 
-        shouldThrow<IllegalArgumentException> {
+        shouldThrow<InjectException> {
             injector.getBindings(object : TypeLiteral<Consumer<String>>() {}.typeKey).getSingle()
         }
     }
@@ -115,7 +115,7 @@ class InstantiateBinderTest : FunSpec({
     test("A InstantiateBinder should NOT create instance of class without @Inject") {
         class TestClass
 
-        shouldThrow<IllegalArgumentException> {
+        shouldThrow<InjectException> {
             injector.getInstance(TestClass::class)
         }
     }
