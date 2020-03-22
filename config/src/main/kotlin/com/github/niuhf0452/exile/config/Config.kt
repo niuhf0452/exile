@@ -6,6 +6,7 @@ import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.SerializationStrategy
 import java.net.URI
 import java.util.*
+import java.util.concurrent.CompletableFuture
 import kotlin.reflect.KClass
 
 /**
@@ -373,13 +374,12 @@ interface ConfigMapper {
      * So that it's recommend to reload the configuration in a let it crash pattern. Which means the application
      * should hard recover (e.g. restarting) if any error happens during reloading.
      *
-     * Internally the reloading and listeners callback work on a single thread in thread unsafe manner.
+     * Internally the reloading and listeners callback work on a single thread.
      *
      * If a configuration is not critical, the listener should catch and handle the exception within it self,
      * so that it would not trigger the hard recovery.
-     *
      */
-    fun reload()
+    fun reload(): CompletableFuture<Unit>
 
     /**
      * A Mapping is a mapping from config path to the type-safe config object.
@@ -410,8 +410,13 @@ interface ConfigMapper {
         /**
          * Add a listener to react to configuration changes.
          * Note that the listener is called only when the changes impact the receiver.
+         *
+         * The listener will be called for initialization on another thread when added.
+         *
+         * @param listener The Listener react to changes.
+         * @return A future fulfilled after the initialization callback fired.
          */
-        fun addListener(listener: Listener<T>)
+        fun addListener(listener: Listener<T>): CompletableFuture<Unit>
     }
 
     /**

@@ -9,6 +9,7 @@ import io.kotlintest.shouldBe
 import io.kotlintest.shouldThrow
 import io.kotlintest.specs.FunSpec
 import kotlinx.serialization.Serializable
+import java.util.concurrent.atomic.AtomicInteger
 
 class ConfigMapperTest : FunSpec({
     val configStr = """
@@ -78,6 +79,7 @@ class ConfigMapperTest : FunSpec({
         mysqlConfig.host shouldBe "mysql"
     }
 
+    @Suppress("BlockingMethodInNonBlockingContext")
     test("A ConfigMapper can reload") {
         val source = CompositeSource.threadSafeSource()
         source.addSource(SimpleConfigSource(configStr))
@@ -91,7 +93,7 @@ class ConfigMapperTest : FunSpec({
               host = mysql
             }
         """.trimIndent()))
-        mapper.reload()
+        mapper.reload().get()
         mysqlConfig = mapper.get(MysqlConfig::class)
         mysqlConfig.host shouldBe "mysql"
         mysqlConfig.port shouldBe 3306
@@ -112,6 +114,26 @@ class ConfigMapperTest : FunSpec({
         shouldThrow<ConfigException> {
             ConfigMapper.newMapper(config).addMapping(Options::class)
         }
+    }
+
+    @Suppress("BlockingMethodInNonBlockingContext")
+    test("A ConfigMapper should respect to listeners") {
+        val composite = CompositeSource.threadSafeSource()
+        composite.addSource(SimpleConfigSource(configStr))
+        val config = Config.newBuilder().from(composite).build()
+        val mapper = ConfigMapper.newMapper(config)
+        val port = AtomicInteger(0)
+        mapper.getMapping(RedisConfig::class).addListener(object : ConfigMapper.Listener<RedisConfig> {
+            override fun onUpdate(value: RedisConfig) {
+                port.set(value.port)
+            }
+        }).thenCompose {
+            port.get() shouldBe 6798
+            composite.addSource(SimpleConfigSource("redis.port = 1234"), Config.Order.OVERWRITE)
+            mapper.reload()
+        }.thenAccept {
+            port.get() shouldBe 1234
+        }.get()
     }
 }) {
     @Serializable

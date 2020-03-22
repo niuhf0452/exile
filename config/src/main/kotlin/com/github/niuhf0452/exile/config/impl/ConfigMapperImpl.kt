@@ -4,7 +4,10 @@ import com.github.niuhf0452.exile.config.*
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ImplicitReflectionSerializer
 import kotlinx.serialization.serializer
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicReference
+import java.util.function.Supplier
 import kotlin.reflect.KClass
 import kotlin.reflect.full.findAnnotation
 
@@ -12,6 +15,7 @@ class ConfigMapperImpl(
         private val config: Config
 ) : ConfigMapper {
     private val mappings = ConcurrentHashMap<KClass<*>, Mapping<*>>()
+    private val executor = SingleThreadAutoFreeExecutor("config-mapper", isDaemon = true)
 
     override fun <T : Any> addMapping(path: String, cls: KClass<T>, deserializer: DeserializationStrategy<T>) {
         if (mappings.putIfAbsent(cls, Mapping(path, cls, deserializer)) != null) {
@@ -46,7 +50,13 @@ class ConfigMapperImpl(
         return mappings.values.toList()
     }
 
-    override fun reload() {
+    override fun reload(): CompletableFuture<Unit> {
+        return CompletableFuture.supplyAsync(Supplier {
+            doReload()
+        }, executor)
+    }
+
+    private fun doReload() {
         config.reload()
         mappings.values.forEach { it.reload() }
     }
@@ -57,11 +67,17 @@ class ConfigMapperImpl(
             override val deserializer: DeserializationStrategy<T>
     ) : ConfigMapper.Mapping<T> {
         private val listeners = ConcurrentHashMap.newKeySet<ConfigMapper.Listener<T>>()
+        private val safeReceiverHolder = AtomicReference(load())
 
-        override var receiver: T = load()
+        override val receiver: T
+            get() = safeReceiverHolder.get()
 
-        override fun addListener(listener: ConfigMapper.Listener<T>) {
-            listeners.add(listener)
+        override fun addListener(listener: ConfigMapper.Listener<T>): CompletableFuture<Unit> {
+            return CompletableFuture.supplyAsync(Supplier {
+                if (listeners.add(listener)) {
+                    listener.onUpdate(receiver)
+                }
+            }, executor)
         }
 
         override fun toString(): String {
@@ -75,8 +91,9 @@ class ConfigMapperImpl(
 
         fun reload() {
             val newValue = load()
-            if (receiver != newValue) {
-                receiver = newValue
+            // since it runs in a single thread executor, the compare and set can works correctly.
+            if (safeReceiverHolder.get() != newValue) {
+                safeReceiverHolder.set(newValue)
                 listeners.forEach { it.onUpdate(newValue) }
             }
         }
