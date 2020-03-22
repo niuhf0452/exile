@@ -56,7 +56,13 @@ class ConfigMapperImpl(
             override val receiverClass: KClass<T>,
             override val deserializer: DeserializationStrategy<T>
     ) : ConfigMapper.Mapping<T> {
+        private val listeners = ConcurrentHashMap.newKeySet<ConfigMapper.Listener<T>>()
+
         override var receiver: T = load()
+
+        override fun addListener(listener: ConfigMapper.Listener<T>) {
+            listeners.add(listener)
+        }
 
         override fun toString(): String {
             return "Mapping($path, $receiver)"
@@ -68,7 +74,11 @@ class ConfigMapperImpl(
         }
 
         fun reload() {
-            receiver = load()
+            val newValue = load()
+            if (receiver != newValue) {
+                receiver = newValue
+                listeners.forEach { it.onUpdate(newValue) }
+            }
         }
     }
 }

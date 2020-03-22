@@ -324,6 +324,12 @@ class ConfigException(message: String, exception: Exception? = null)
  *
  * The type-safe config features is based on kotlin serialization.
  * So make sure the type-safe config class is serializable.
+ *
+ * Generally the ConfigMapper support following features:
+ *
+ * * Type-safe access to configuration.
+ * * Consistent view of piece of configuration within the type-safe object.
+ * * Listen to changes of configuration.
  */
 interface ConfigMapper {
     /**
@@ -349,7 +355,9 @@ interface ConfigMapper {
     }
 
     /**
-     * Get a mapping by type.
+     * Get or create a mapping by type.
+     * Note that, this method has side effect. If the mapping of the class is not created yet, it will create one
+     * and return it. So it's kind like [addMapping].
      */
     fun <A : Any> getMapping(cls: KClass<A>): Mapping<A>
 
@@ -360,6 +368,16 @@ interface ConfigMapper {
 
     /**
      * Reload the configuration and related type-safe objects.
+     *
+     * Usually, the configuration is critical, we have to keep it consistent across the whole application cluster.
+     * So that it's recommend to reload the configuration in a let it crash pattern. Which means the application
+     * should hard recover (e.g. restarting) if any error happens during reloading.
+     *
+     * Internally the reloading and listeners callback work on a single thread in thread unsafe manner.
+     *
+     * If a configuration is not critical, the listener should catch and handle the exception within it self,
+     * so that it would not trigger the hard recovery.
+     *
      */
     fun reload()
 
@@ -388,6 +406,21 @@ interface ConfigMapper {
          * The type-safe config object.
          */
         val receiver: T
+
+        /**
+         * Add a listener to react to configuration changes.
+         * Note that the listener is called only when the changes impact the receiver.
+         */
+        fun addListener(listener: Listener<T>)
+    }
+
+    /**
+     * A listener react to configuration changes.
+     *
+     * @since 1.0
+     */
+    interface Listener<T> {
+        fun onUpdate(value: T)
     }
 
     companion object {
