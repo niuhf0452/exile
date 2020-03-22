@@ -1,6 +1,9 @@
 package com.github.niuhf0452.exile.config
 
-import com.github.niuhf0452.exile.config.impl.*
+import com.github.niuhf0452.exile.config.impl.AutoConfigurator
+import com.github.niuhf0452.exile.config.impl.ConfigImpl
+import com.github.niuhf0452.exile.config.impl.ConfigMapperImpl
+import com.github.niuhf0452.exile.config.impl.EmptyConfig
 import com.github.niuhf0452.exile.config.simpleconfig.SimpleConfig
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.SerializationStrategy
@@ -452,8 +455,8 @@ annotation class Configuration(val value: String)
  * @since 1.0
  */
 fun Config.Builder.autoConfigure(
-        configFile: String = Util.getConfigFile(),
-        activeProfiles: List<String> = Util.getActiveProfiles(),
+        configFile: String = AutoConfigurator.getConfigFile(),
+        activeProfiles: List<String> = AutoConfigurator.getActiveProfiles(),
         overwrite: Config.Source = EmptyConfig.EmptySource
 ): Config.Builder {
     return from(AutoConfigurator().config(configFile, activeProfiles, overwrite))

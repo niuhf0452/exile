@@ -17,6 +17,9 @@ object Vers {
     const val slf4j = "1.7.30"
     const val log4j = "2.13.1"
     const val wiremock = "2.26.3"
+    const val netty = "4.1.48.Final"
+    const val servlet = "4.0.1"
+    const val jetty = "9.4.27.v20200227"
 }
 
 object Bom {
@@ -36,6 +39,10 @@ object Bom {
     const val `log4j-1-2-api` = "org.apache.logging.log4j:log4j-1.2-api:${Vers.log4j}"
     const val `log4j-jul` = "org.apache.logging.log4j:log4j-jul:${Vers.log4j}"
     const val `wiremock-jre8` = "com.github.tomakehurst:wiremock-jre8:${Vers.wiremock}"
+    const val `netty-all` = "io.netty:netty-all:${Vers.netty}"
+    const val `servlet-api` = "javax.servlet:javax.servlet-api:${Vers.servlet}"
+    const val `jetty-server` = "org.eclipse.jetty:jetty-server:${Vers.jetty}"
+    const val `jetty-servlet` = "org.eclipse.jetty:jetty-servlet:${Vers.jetty}"
 }
 
 val Project.bom: Bom

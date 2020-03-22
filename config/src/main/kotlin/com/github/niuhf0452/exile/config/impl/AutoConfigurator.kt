@@ -102,4 +102,21 @@ class AutoConfigurator {
             return values
         }
     }
+
+    companion object {
+        fun getActiveProfiles(): List<String> {
+            val active = System.getProperty("config.profiles.active")
+                    ?: System.getenv("CONFIG_PROFILES_ACTIVE")
+            if (active == null || active.isBlank()) {
+                return emptyList()
+            }
+            return active.split(',').map(String::trim)
+        }
+
+        fun getConfigFile(): String {
+            return System.getProperty("config.file")
+                    ?: System.getenv("CONFIG_FILE")
+                    ?: "/application.*"
+        }
+    }
 }
