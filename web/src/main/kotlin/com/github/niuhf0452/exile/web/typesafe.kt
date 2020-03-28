@@ -32,11 +32,6 @@ annotation class WebHeader(val value: String = "")
 @Retention(AnnotationRetention.RUNTIME)
 annotation class WebEntity(val value: String = "application/json")
 
-@MustBeDocumented
-@Target(AnnotationTarget.VALUE_PARAMETER)
-@Retention(AnnotationRetention.RUNTIME)
-annotation class WebForm(val value: String = "")
-
 interface WebClientMapper {
     fun <A : Any> get(cls: KClass<A>, baseURI: URI): A
 }

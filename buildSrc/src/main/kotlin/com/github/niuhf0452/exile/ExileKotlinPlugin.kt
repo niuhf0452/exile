@@ -26,6 +26,7 @@ class ExileKotlinPlugin : Plugin<Project> {
 
         repositories.run {
             mavenCentral()
+            jcenter()
         }
 
         extensions.getByType(JavaPluginExtension::class.java).run {

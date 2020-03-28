@@ -5,7 +5,7 @@ package com.github.niuhf0452.exile
 import org.gradle.api.Project
 
 object Vers {
-    const val kotlin = "1.3.70"
+    const val kotlin = "1.3.71"
     const val kotlinx_io = "0.1.16"
     const val kotlinx_serialization = "0.20.0"
     const val kotlinx_coroutines = "1.3.4"
@@ -28,7 +28,7 @@ object Bom {
     const val `kotlinx-serialization` = "org.jetbrains.kotlinx:kotlinx-serialization-runtime:${Vers.kotlinx_serialization}"
     const val `kotlinx-io` = "org.jetbrains.kotlinx:kotlinx-io-jvm:${Vers.kotlinx_io}"
     const val `kotlinx-coroutines-slf4j` = "org.jetbrains.kotlinx:kotlinx-coroutines-slf4j:${Vers.kotlinx_coroutines}"
-    const val `kotlinx-coroutines-core` = "org.jetbrains.kotlinx:kotlinx-coroutines-core:${Vers.kotlinx_coroutines}"
+    const val `kotlinx-coroutines-jdk8` = "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:${Vers.kotlinx_coroutines}"
     const val `kotlintest-runner-junit5` = "io.kotlintest:kotlintest-runner-junit5:${Vers.kotlin_test}"
     const val classgraph = "io.github.classgraph:classgraph:${Vers.classgraph}"
     const val `byte-buddy` = "net.bytebuddy:byte-buddy:${Vers.bytebuddy}"
@@ -43,6 +43,12 @@ object Bom {
     const val `servlet-api` = "javax.servlet:javax.servlet-api:${Vers.servlet}"
     const val `jetty-server` = "org.eclipse.jetty:jetty-server:${Vers.jetty}"
     const val `jetty-servlet` = "org.eclipse.jetty:jetty-servlet:${Vers.jetty}"
+    const val `serial-protobuf` = "org.jetbrains.kotlinx:kotlinx-serialization-protobuf:${Vers.kotlinx_serialization}"
+    const val `serial-cbor` = "org.jetbrains.kotlinx:kotlinx-serialization-cbor:${Vers.kotlinx_serialization}"
+    const val `serial-yaml` = "com.charleskorn.kaml:kaml:0.17.0"
+    const val `serial-xml` = "net.devrieze:xmlutil-serialization-jvm:0.20.0.0"
+    const val `serial-bson` = "com.github.jershell:kbson:0.2.1"
+    const val `serial-avro` = "com.sksamuel.avro4k:avro4k-core:0.30.0"
 }
 
 val Project.bom: Bom
