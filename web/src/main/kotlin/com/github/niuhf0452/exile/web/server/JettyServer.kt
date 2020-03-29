@@ -1,10 +1,8 @@
 package com.github.niuhf0452.exile.web.server
 
 import com.github.niuhf0452.exile.web.Router
-import com.github.niuhf0452.exile.web.SerialModuleElement
 import com.github.niuhf0452.exile.web.WebServer
 import com.github.niuhf0452.exile.web.impl.RouterImpl
-import kotlinx.serialization.modules.EmptyModule
 import org.eclipse.jetty.server.HttpConnectionFactory
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
@@ -24,10 +22,7 @@ class JettyServer(
 
     class Factory : WebServer.Factory {
         override fun startServer(config: WebServer.Config, coroutineContext: CoroutineContext): WebServer {
-            val module = coroutineContext[SerialModuleElement]
-                    ?.module
-                    ?: EmptyModule
-            val router = RouterImpl(config, module)
+            val router = RouterImpl(config)
             val server = Server(config.port)
             val servletContext = ServletContextHandler()
             setMaxHeaderSize(server, config.maxHeaderSize)

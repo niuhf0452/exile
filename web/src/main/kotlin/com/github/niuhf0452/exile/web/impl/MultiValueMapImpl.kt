@@ -1,14 +1,15 @@
 package com.github.niuhf0452.exile.web.impl
 
-import com.github.niuhf0452.exile.web.WebHeaders
+import com.github.niuhf0452.exile.web.MultiValueMap
 import java.util.*
 import kotlin.collections.ArrayList
 
-class WebHeadersImpl() : WebHeaders {
-    private val headers = TreeMap<String, MutableList<String>>(String.CASE_INSENSITIVE_ORDER)
+class MultiValueMapImpl(caseSensitivity: Boolean) : MultiValueMap {
+    private val headers: MutableMap<String, MutableList<String>> =
+            if (caseSensitivity) HashMap() else TreeMap(String.CASE_INSENSITIVE_ORDER)
 
-    constructor(value: WebHeaders) : this() {
-        if (value is WebHeadersImpl) {
+    constructor(value: MultiValueMap, caseSensitivity: Boolean) : this(caseSensitivity) {
+        if (value is MultiValueMapImpl) {
             headers.putAll(value.headers)
         } else {
             value.forEach { name ->
@@ -16,6 +17,9 @@ class WebHeadersImpl() : WebHeaders {
             }
         }
     }
+
+    override val isEmpty: Boolean
+        get() = headers.isEmpty()
 
     override fun get(name: String): Iterable<String> {
         return headers[name]

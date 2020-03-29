@@ -1,6 +1,6 @@
 package com.github.niuhf0452.exile.web.impl
 
-import com.github.niuhf0452.exile.web.WebHeaders
+import com.github.niuhf0452.exile.web.MultiValueMap
 import com.github.niuhf0452.exile.web.WebRequest
 import java.net.URI
 import java.net.URLEncoder
@@ -8,54 +8,107 @@ import java.net.URLEncoder
 class WebRequestImpl<E>(
         override val uri: URI,
         override val method: String,
-        override val headers: WebHeaders,
+        override val headers: MultiValueMap,
         override val entity: E
 ) : WebRequest<E> {
+    override val hasEntity: Boolean
+        get() = true
+
+    override fun mapHeaders(f: (MultiValueMap) -> MultiValueMap): WebRequest<E> {
+        return WebRequestImpl(uri, method, f(headers), entity)
+    }
+
+    override fun <A> mapEntity(f: (E) -> A): WebRequest<A> {
+        return WebRequestImpl(uri, method, headers, f(entity))
+    }
+
+    class NoEntity(
+            override val uri: URI,
+            override val method: String,
+            override val headers: MultiValueMap
+    ) : WebRequest<Nothing> {
+        override val hasEntity: Boolean
+            get() = false
+
+        override val entity: Nothing
+            get() = throw IllegalStateException("No entity")
+
+        override fun mapHeaders(f: (MultiValueMap) -> MultiValueMap): WebRequest<Nothing> {
+            return NoEntity(uri, method, f(headers))
+        }
+
+        override fun <A> mapEntity(f: (Nothing) -> A): WebRequest<A> {
+            return this
+        }
+    }
+
     class Builder(
             private val uri: String
-    ) : WebRequest.Builder {
+    ) : WebRequest.Builder<Any> {
         private var method = ""
         private val pathParams = mutableMapOf<String, String>()
         private val queryParams = mutableListOf<Pair<String, String>>()
-        private var headers = WebHeadersImpl()
+        private var headers = MultiValueMapImpl(false)
+        private var entity: Any? = null
 
-        override fun method(value: String): WebRequest.Builder {
+        override fun method(value: String): WebRequest.Builder<Any> {
             method = value
             return this
         }
 
-        override fun setPathParam(name: String, value: String): WebRequest.Builder {
+        override fun setPathParam(name: String, value: String): WebRequest.Builder<Any> {
             pathParams[name] = value
             return this
         }
 
-        override fun addQueryParam(name: String, value: String): WebRequest.Builder {
+        override fun addQueryParam(name: String, value: String): WebRequest.Builder<Any> {
             queryParams.add(name to value)
             return this
         }
 
-        override fun setHeaders(value: Map<String, String>): WebRequest.Builder {
+        override fun setHeaders(value: Map<String, String>): WebRequest.Builder<Any> {
             headers.set(value)
             return this
         }
 
-        override fun addHeader(name: String, value: String): WebRequest.Builder {
+        override fun addHeader(name: String, value: String): WebRequest.Builder<Any> {
             headers.add(name, value)
             return this
         }
 
-        override fun setHeader(name: String, value: Iterable<String>): WebRequest.Builder {
+        override fun setHeader(name: String, value: Iterable<String>): WebRequest.Builder<Any> {
             headers.set(name, value)
             return this
         }
 
-        override fun removeHeader(name: String): WebRequest.Builder {
+        override fun removeHeader(name: String): WebRequest.Builder<Any> {
             headers.remove(name)
             return this
         }
 
-        override fun <T> entity(value: T): WebRequest<T> {
-            return WebRequestImpl(getURI(), method, headers, value)
+        override fun <T> entity(value: T): WebRequest.Builder<T> {
+            entity = value
+            @Suppress("UNCHECKED_CAST")
+            return this as WebRequest.Builder<T>
+        }
+
+        override fun noEntity(): WebRequest.Builder<Nothing> {
+            entity = null
+            @Suppress("UNCHECKED_CAST")
+            return this as WebRequest.Builder<Nothing>
+        }
+
+        override fun build(): WebRequest<Any> {
+            if (method.isEmpty()) {
+                throw IllegalArgumentException("The method is not set")
+            }
+            val headers0 = if (headers.isEmpty) MultiValueMap.Empty else headers
+            val entity0 = entity
+            return if (entity0 == null) {
+                NoEntity(getURI(), method, headers0)
+            } else {
+                WebRequestImpl(getURI(), method, headers0, entity0)
+            }
         }
 
         private fun getURI(): URI {

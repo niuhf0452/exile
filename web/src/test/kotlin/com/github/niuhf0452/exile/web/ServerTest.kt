@@ -31,7 +31,7 @@ abstract class ServerTest : FunSpec() {
             client.send(WebRequest
                     .newBuilder("http://localhost:${server.port}/test")
                     .method("GET")
-                    .noEntity())
+                    .build())
                     .statusCode shouldBe 204
         }
     }
@@ -39,8 +39,8 @@ abstract class ServerTest : FunSpec() {
     override fun beforeSpec(spec: Spec) {
         server = createServer()
         server.addRoute("GET", "/test", object : WebHandler {
-            override suspend fun onRequest(context: RequestContext, request: WebRequest<Variant>): WebResponse<Any> {
-                return WebResponse.newBuilder().statusCode(204).noEntity()
+            override suspend fun onRequest(context: RequestContext): WebResponse<Any> {
+                return WebResponse.newBuilder().statusCode(204).build()
             }
         })
     }

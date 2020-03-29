@@ -3,7 +3,7 @@ package com.github.niuhf0452.exile.web.client
 import com.github.niuhf0452.exile.web.WebClient
 import com.github.niuhf0452.exile.web.WebRequest
 import com.github.niuhf0452.exile.web.WebResponse
-import com.github.niuhf0452.exile.web.impl.WebHeadersImpl
+import com.github.niuhf0452.exile.web.impl.MultiValueMapImpl
 import com.github.niuhf0452.exile.web.impl.WebResponseImpl
 import kotlinx.coroutines.future.await
 import java.net.http.HttpClient
@@ -15,29 +15,33 @@ import javax.net.ssl.SSLContext
 class JavaClient(
         private val client: HttpClient,
         private val requestTimeout: Duration
-) : WebClient {
-    override suspend fun send(request: WebRequest<ByteArray>): WebResponse<ByteArray> {
-        var builder = HttpRequest.newBuilder()
+) : AbstractWebClient() {
+    override suspend fun backendSend(request: WebRequest<ByteArray>): WebResponse<ByteArray> {
+        val builder = HttpRequest.newBuilder()
                 .uri(request.uri)
                 .timeout(requestTimeout)
         request.headers.forEach { name ->
             request.headers.get(name).forEach { value ->
-                builder = builder.header(name, value)
+                builder.header(name, value)
             }
         }
-        val body = if (request.entity.isEmpty()) {
-            HttpRequest.BodyPublishers.noBody()
-        } else {
+        val body = if (request.hasEntity) {
             HttpRequest.BodyPublishers.ofByteArray(request.entity)
+        } else {
+            HttpRequest.BodyPublishers.noBody()
         }
         val req = builder.method(request.method, body)
                 .build()
         val resp = client.sendAsync(req, HttpResponse.BodyHandlers.ofByteArray()).await()
-        val headers = WebHeadersImpl()
+        val headers = MultiValueMapImpl(false)
         resp.headers().map().forEach { (k, v) ->
             headers.set(k, v)
         }
-        return WebResponseImpl(resp.statusCode(), headers, resp.body())
+        return if (resp.body() == null || resp.body().isEmpty()) {
+            WebResponseImpl.NoEntity(resp.statusCode(), headers)
+        } else {
+            WebResponseImpl(resp.statusCode(), headers, resp.body())
+        }
     }
 
     class Builder : AbstractWebClientBuilder() {

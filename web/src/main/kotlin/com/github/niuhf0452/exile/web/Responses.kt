@@ -8,12 +8,5 @@ object Responses {
     val NotAcceptable = status(406)
     val UnsupportedMediaType = status(415)
 
-    private fun status(value: Int): WebResponse<ByteArray> = StatusResponse(value)
-
-    private class StatusResponse(override val statusCode: Int) : WebResponse<ByteArray> {
-        override val headers: WebHeaders
-            get() = WebHeaders.Empty
-        override val entity: ByteArray
-            get() = emptyByteArray
-    }
+    private fun status(value: Int): WebResponse<ByteArray> = WebResponse.newBuilder().statusCode(value).build()
 }

@@ -7,7 +7,6 @@ import kotlinx.serialization.modules.SerialModule
 import java.net.URI
 import java.time.Duration
 import javax.net.ssl.SSLContext
-import kotlin.coroutines.AbstractCoroutineContextElement
 import kotlin.coroutines.CoroutineContext
 import kotlin.reflect.KClass
 
@@ -41,7 +40,7 @@ interface Router {
 }
 
 interface WebHandler {
-    suspend fun onRequest(context: RequestContext, request: WebRequest<Variant>): WebResponse<Any>
+    suspend fun onRequest(context: RequestContext): WebResponse<Any>
 }
 
 interface WebExceptionHandler {
@@ -50,81 +49,97 @@ interface WebExceptionHandler {
 
 interface RequestContext {
     val routePath: String
-    val pathVariables: Map<String, String>
-
-    fun getPathVar(name: String): String {
-        return pathVariables[name]
-                ?: throw IllegalStateException("Path variable is missing: $name")
-    }
+    val pathParams: Map<String, String>
+    val queryParams: MultiValueMap
+    val request: WebRequest<Variant>
 }
 
-interface WebRequest<E> {
+interface WebRequest<out E> {
     val uri: URI
     val method: String
-    val headers: WebHeaders
+    val headers: MultiValueMap
+    val hasEntity: Boolean
     val entity: E
 
-    interface Builder {
-        fun method(value: String): Builder
+    fun mapHeaders(f: (MultiValueMap) -> MultiValueMap): WebRequest<E>
+    fun <A> mapEntity(f: (E) -> A): WebRequest<A>
 
-        fun setPathParam(name: String, value: String): Builder
+    interface Builder<out E> {
+        fun method(value: String): Builder<E>
 
-        fun addQueryParam(name: String, value: String): Builder
+        fun setPathParam(name: String, value: String): Builder<E>
 
-        fun setHeaders(value: Map<String, String>): Builder
+        fun addQueryParam(name: String, value: String): Builder<E>
 
-        fun addHeader(name: String, value: String): Builder
+        fun setHeaders(value: Map<String, String>): Builder<E>
 
-        fun setHeader(name: String, value: Iterable<String>): Builder
+        fun addHeader(name: String, value: String): Builder<E>
 
-        fun removeHeader(name: String): Builder
+        fun setHeader(name: String, value: Iterable<String>): Builder<E>
 
-        fun <T> entity(value: T): WebRequest<T>
+        fun removeHeader(name: String): Builder<E>
 
-        fun noEntity(): WebRequest<ByteArray> = entity(emptyByteArray)
+        fun <T> entity(value: T): Builder<T>
+
+        fun noEntity(): Builder<Nothing>
+
+        fun build(): WebRequest<E>
     }
 
     companion object {
-        fun newBuilder(uri: String): Builder {
-            return WebRequestImpl.Builder(uri)
+        fun newBuilder(uri: String): Builder<Nothing> {
+            @Suppress("UNCHECKED_CAST")
+            return WebRequestImpl.Builder(uri) as Builder<Nothing>
         }
     }
 }
 
 interface WebResponse<out E> {
     val statusCode: Int
-    val headers: WebHeaders
+    val headers: MultiValueMap
+    val hasEntity: Boolean
     val entity: E
 
-    interface Builder {
-        fun statusCode(value: Int): Builder
+    fun mapHeaders(f: (MultiValueMap) -> MultiValueMap): WebResponse<E>
+    fun <A> mapEntity(f: (E) -> A): WebResponse<A>
 
-        fun headers(value: WebHeaders): Builder
+    interface Builder<E> {
+        fun statusCode(value: Int): Builder<E>
 
-        fun setHeaders(value: Map<String, String>): Builder
+        fun headers(value: MultiValueMap): Builder<E>
 
-        fun addHeader(name: String, value: String): Builder
+        fun setHeaders(value: Map<String, String>): Builder<E>
 
-        fun setHeader(name: String, value: Iterable<String>): Builder
+        fun addHeader(name: String, value: String): Builder<E>
 
-        fun removeHeader(name: String): Builder
+        fun setHeader(name: String, value: Iterable<String>): Builder<E>
 
-        fun <T> entity(value: T): WebResponse<T>
+        fun removeHeader(name: String): Builder<E>
 
-        fun noEntity(): WebResponse<ByteArray> = entity(emptyByteArray)
+        fun <T> entity(value: T): Builder<T>
+
+        fun noEntity(): Builder<Nothing>
+
+        fun build(): WebResponse<E>
     }
 
     companion object {
-        fun newBuilder(): Builder {
-            return WebResponseImpl.Builder()
+        fun newBuilder(): Builder<Nothing> {
+            @Suppress("UNCHECKED_CAST")
+            return WebResponseImpl.Builder() as Builder<Nothing>
         }
     }
 }
 
-interface WebHeaders : Iterable<String> {
+interface MultiValueMap : Iterable<String> {
+    val isEmpty: Boolean
+
     fun get(name: String): Iterable<String>
 
-    object Empty : WebHeaders {
+    object Empty : MultiValueMap {
+        override val isEmpty: Boolean
+            get() = true
+
         override fun get(name: String): Iterable<String> {
             return emptyList()
         }
@@ -136,13 +151,13 @@ interface WebHeaders : Iterable<String> {
 }
 
 interface Variant {
+    val isEmpty: Boolean
+
     fun <T : Any> convertTo(cls: KClass<T>): T
 }
 
 interface WebEntitySerializer {
-    fun acceptConsumes(mediaType: MediaType): Boolean
-
-    fun acceptProduces(mediaType: MediaType): Boolean
+    val mediaTypes: List<MediaType>
 
     fun serialize(data: Any, mediaType: MediaType): ByteArray
 
@@ -153,22 +168,11 @@ interface WebEntitySerializer {
     }
 }
 
-class WebResponseException(val response: WebResponse<ByteArray>)
-    : RuntimeException("${response.statusCode} - ${response.entity}") {
-    constructor(statusCode: Int, message: String)
-            : this(WebResponse.newBuilder()
-            .statusCode(statusCode)
-            .addHeader("Content-Type", "text/plain")
-            .entity(message.toByteArray()))
-}
-
-data class SerialModuleElement(val module: SerialModule)
-    : AbstractCoroutineContextElement(Key) {
-    companion object Key : CoroutineContext.Key<SerialModuleElement>
-}
+class FailureResponseException(val statusCode: Int, val description: String)
+    : RuntimeException("$statusCode - $description")
 
 interface WebClient {
-    suspend fun send(request: WebRequest<ByteArray>): WebResponse<ByteArray>
+    suspend fun send(request: WebRequest<Any>): WebResponse<Variant>
 
     interface Builder {
         fun maxKeepAliveConnectionSize(value: Int): Builder

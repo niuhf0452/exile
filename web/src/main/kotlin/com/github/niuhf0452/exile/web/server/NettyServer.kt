@@ -2,7 +2,7 @@ package com.github.niuhf0452.exile.web.server
 
 import com.github.niuhf0452.exile.web.*
 import com.github.niuhf0452.exile.web.impl.RouterImpl
-import com.github.niuhf0452.exile.web.emptyByteArray
+import com.github.niuhf0452.exile.web.impl.WebRequestImpl
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.buffer.Unpooled
 import io.netty.channel.ChannelFutureListener
@@ -18,7 +18,6 @@ import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import kotlinx.serialization.modules.EmptyModule
 import java.net.InetSocketAddress
 import java.net.URI
 import kotlin.coroutines.CoroutineContext
@@ -36,10 +35,7 @@ class NettyServer(
 
     class Factory : WebServer.Factory {
         override fun startServer(config: WebServer.Config, coroutineContext: CoroutineContext): WebServer {
-            val module = coroutineContext[SerialModuleElement]
-                    ?.module
-                    ?: EmptyModule
-            val router = RouterImpl(config, module)
+            val router = RouterImpl(config)
             val boss = NioEventLoopGroup()
             val workerCount = Runtime.getRuntime().availableProcessors()
             val worker = NioEventLoopGroup(workerCount, DefaultThreadFactory("netty-worker", Thread.NORM_PRIORITY))
@@ -77,7 +73,7 @@ class NettyServer(
                     ctx.write(DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE))
                 } else {
                     GlobalScope.launch(context = context, start = CoroutineStart.UNDISPATCHED) {
-                        val response = router.onRequest(RequestAdapter(msg))
+                        val response = router.onRequest(makeRequest(msg))
                         msg.release()
                         val nettyResponse = response.toNettyResponse()
                         val future = ctx.writeAndFlush(nettyResponse)
@@ -91,9 +87,26 @@ class NettyServer(
             }
         }
 
+        private fun makeRequest(nettyRequest: FullHttpRequest): WebRequest<ByteArray> {
+            val uri = URI.create(nettyRequest.uri())
+            val method = nettyRequest.method().name()
+            val headers = HeadersAdapter(nettyRequest.headers())
+            val buf = nettyRequest.content()
+            if (buf == null || buf.readableBytes() == 0) {
+                return WebRequestImpl.NoEntity(uri, method, headers)
+            }
+            val bytes = ByteArray(buf.readableBytes())
+            buf.readBytes(bytes)
+            return WebRequestImpl(uri, method, headers, bytes)
+        }
+
         private fun WebResponse<ByteArray>.toNettyResponse(): FullHttpResponse {
-            val content = Unpooled.wrappedBuffer(entity)
-            val resp = DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.valueOf(statusCode), content)
+            val resp = if (hasEntity) {
+                val content = Unpooled.wrappedBuffer(entity)
+                DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.valueOf(statusCode), content)
+            } else {
+                DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.valueOf(statusCode))
+            }
             headers.forEach { name ->
                 resp.headers().set(name, headers.get(name))
             }
@@ -101,27 +114,12 @@ class NettyServer(
         }
     }
 
-    private class RequestAdapter(
-            private val nettyRequest: FullHttpRequest
-    ) : WebRequest<ByteArray> {
-        override val uri: URI = URI.create(nettyRequest.uri())
-        override val method: String = nettyRequest.method().name()
-        override val headers: WebHeaders = HeadersAdapter(nettyRequest.headers())
-        override val entity: ByteArray = run {
-            val buf = nettyRequest.content()
-            if (buf == null || buf.readableBytes() == 0) {
-                emptyByteArray
-            } else {
-                val bytes = ByteArray(buf.readableBytes())
-                buf.readBytes(bytes)
-                bytes
-            }
-        }
-    }
-
     private class HeadersAdapter(
             private val headers: HttpHeaders
-    ) : WebHeaders {
+    ) : MultiValueMap {
+        override val isEmpty: Boolean
+            get() = headers.isEmpty
+
         override fun get(name: String): Iterable<String> {
             return headers.getAll(name)
                     ?: emptyList()

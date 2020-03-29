@@ -1,12 +1,14 @@
 package com.github.niuhf0452.exile.web.server
 
+import com.github.niuhf0452.exile.web.MultiValueMap
 import com.github.niuhf0452.exile.web.Router
-import com.github.niuhf0452.exile.web.WebHeaders
 import com.github.niuhf0452.exile.web.WebRequest
 import com.github.niuhf0452.exile.web.WebResponse
+import com.github.niuhf0452.exile.web.impl.WebRequestImpl
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
 import java.io.IOException
@@ -27,32 +29,27 @@ class RouterServlet(
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun service(req: HttpServletRequest, resp: HttpServletResponse) {
         val asyncContext = req.startAsync()
-        readInput(asyncContext) { bytes ->
-            val request = RequestAdapter(URI.create(req.requestURI), req.method,
-                    HeaderAdapter(req), bytes)
-            GlobalScope.launch(context = context, start = CoroutineStart.UNDISPATCHED) {
+        GlobalScope.launch(context = context, start = CoroutineStart.UNDISPATCHED) {
+            try {
+                val request = readRequest(asyncContext, req)
                 val response = router.onRequest(request)
-                try {
-                    response.writeToServletResponse(resp)
-                } finally {
-                    asyncContext.complete()
-                }
+                response.writeToServletResponse(resp)
+            } catch (ex: Exception) {
+                ex.writeToServletResponse(resp)
+            } finally {
+                asyncContext.complete()
             }
         }
     }
 
-    private fun readInput(asyncContext: AsyncContext, callback: (ByteArray) -> Unit) {
-        readInput(asyncContext.request.inputStream).whenComplete { bytes, ex ->
-            if (ex != null) {
-                val resp = asyncContext.response as HttpServletResponse
-                try {
-                    ex.writeToServletResponse(resp)
-                } finally {
-                    asyncContext.complete()
-                }
-            } else {
-                callback(bytes)
-            }
+    private suspend fun readRequest(asyncContext: AsyncContext, req: HttpServletRequest): WebRequest<ByteArray> {
+        val uri = URI.create(req.requestURI)
+        val headers = HeaderAdapter(req)
+        val bytes = readInput(asyncContext.request.inputStream).await()
+        return if (bytes.isEmpty()) {
+            WebRequestImpl.NoEntity(uri, req.method, headers)
+        } else {
+            WebRequestImpl(uri, req.method, headers, bytes)
         }
     }
 
@@ -98,20 +95,17 @@ class RouterServlet(
                 servletResponse.addHeader(name, value)
             }
         }
-        servletResponse.outputStream.write(entity)
-        servletResponse.outputStream.close()
+        if (hasEntity) {
+            servletResponse.outputStream.write(entity)
+        }
     }
-
-    private class RequestAdapter(
-            override val uri: URI,
-            override val method: String,
-            override val headers: WebHeaders,
-            override val entity: ByteArray
-    ) : WebRequest<ByteArray>
 
     private class HeaderAdapter(
             private val servletRequest: HttpServletRequest
-    ) : WebHeaders {
+    ) : MultiValueMap {
+        override val isEmpty: Boolean
+            get() = !servletRequest.headerNames.hasMoreElements()
+
         override fun get(name: String): Iterable<String> {
             return HeaderValues(servletRequest, name)
         }

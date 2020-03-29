@@ -10,11 +10,11 @@ plugins {
 
 dependencies {
     api(bom.`kotlin-stdlib-jdk8`)
-    api(bom.`kotlin-reflect`)
     api(bom.`kotlinx-coroutines-jdk8`)
     api(bom.`slf4j-api`)
     api(bom.`netty-all`)
     api(submodule("serialization"))
+    api(submodule("reflection"))
     compileOnly(submodule("inject"))
     compileOnly(submodule("config"))
     compileOnly(bom.`servlet-api`)

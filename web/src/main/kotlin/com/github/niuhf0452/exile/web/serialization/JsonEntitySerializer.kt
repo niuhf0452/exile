@@ -13,13 +13,7 @@ import kotlin.reflect.KClass
 class JsonEntitySerializer(
         private val module: SerialModule
 ) : WebEntitySerializer {
-    override fun acceptConsumes(mediaType: MediaType): Boolean {
-        return MediaType.APPLICATION_JSON.isAcceptable(mediaType)
-    }
-
-    override fun acceptProduces(mediaType: MediaType): Boolean {
-        return mediaType.isAcceptable(MediaType.APPLICATION_JSON)
-    }
+    override val mediaTypes: List<MediaType> = listOf(MediaType.APPLICATION_JSON)
 
     override fun serialize(data: Any, mediaType: MediaType): ByteArray {
         return Json.stringify(module.getContextualOrDefault(data), data).toByteArray()
