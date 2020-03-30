@@ -121,10 +121,10 @@ abstract class ProxyTest : FunSpec() {
 
         test("A proxy should call java default method") {
             val factory = newBuilder<Unit>()
-                    .addInterface(JavaDefaultTest::class)
+                    .addInterface(Test6::class)
                     .filter { false }
                     .build()
-            val obj = factory.createObject(Unit) as JavaDefaultTest
+            val obj = factory.createObject(Unit) as Test6
             obj.hello() shouldBe "hello"
         }
 
@@ -194,5 +194,12 @@ abstract class ProxyTest : FunSpec() {
 
     interface Test5 {
         var value: Int
+    }
+
+    interface Test6 {
+        @JvmDefault
+        fun hello(): String {
+            return "hello"
+        }
     }
 }

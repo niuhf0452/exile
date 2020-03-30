@@ -1,7 +1,7 @@
 package com.github.niuhf0452.exile.inject.binder
 
 import com.github.niuhf0452.exile.inject.*
-import com.github.niuhf0452.exile.inject.impl.getQualifiers
+import com.github.niuhf0452.exile.inject.internal.getQualifiers
 import kotlin.reflect.KClass
 import kotlin.reflect.full.allSupertypes
 import kotlin.reflect.full.findAnnotation

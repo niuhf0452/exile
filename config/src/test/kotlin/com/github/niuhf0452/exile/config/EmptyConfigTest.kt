@@ -1,6 +1,6 @@
 package com.github.niuhf0452.exile.config
 
-import com.github.niuhf0452.exile.config.impl.EmptyConfig
+import com.github.niuhf0452.exile.config.internal.EmptyConfig
 import io.kotlintest.matchers.boolean.shouldBeFalse
 import io.kotlintest.matchers.types.shouldBeNull
 import io.kotlintest.shouldThrow

@@ -2,7 +2,7 @@ package com.github.niuhf0452.exile.web.server
 
 import com.github.niuhf0452.exile.web.Router
 import com.github.niuhf0452.exile.web.WebServer
-import com.github.niuhf0452.exile.web.impl.RouterImpl
+import com.github.niuhf0452.exile.web.internal.RouterImpl
 import org.eclipse.jetty.server.HttpConnectionFactory
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector

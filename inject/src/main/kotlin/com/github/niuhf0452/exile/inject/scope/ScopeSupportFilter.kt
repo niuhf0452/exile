@@ -1,7 +1,7 @@
 package com.github.niuhf0452.exile.inject.scope
 
 import com.github.niuhf0452.exile.inject.*
-import com.github.niuhf0452.exile.inject.impl.InjectorImpl
+import com.github.niuhf0452.exile.inject.internal.InjectorImpl
 import java.security.MessageDigest
 import kotlin.reflect.KClass
 import kotlin.reflect.full.findAnnotation

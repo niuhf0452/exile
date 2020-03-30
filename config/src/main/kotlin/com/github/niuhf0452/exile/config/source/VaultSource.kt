@@ -1,8 +1,8 @@
 package com.github.niuhf0452.exile.config.source
 
 import com.github.niuhf0452.exile.config.*
-import com.github.niuhf0452.exile.config.impl.ConfigFragmentImpl
-import com.github.niuhf0452.exile.config.impl.Util
+import com.github.niuhf0452.exile.config.internal.ConfigFragmentImpl
+import com.github.niuhf0452.exile.config.internal.Util
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UnstableDefault

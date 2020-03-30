@@ -1,7 +1,7 @@
 package com.github.niuhf0452.exile.web
 
-import com.github.niuhf0452.exile.web.impl.WebRequestImpl
-import com.github.niuhf0452.exile.web.impl.WebResponseImpl
+import com.github.niuhf0452.exile.web.internal.WebRequestImpl
+import com.github.niuhf0452.exile.web.internal.WebResponseImpl
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.modules.SerialModule
 import java.net.URI

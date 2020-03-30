@@ -1,6 +1,6 @@
 package com.github.niuhf0452.exile.config
 
-import com.github.niuhf0452.exile.config.impl.CompositeSource
+import com.github.niuhf0452.exile.config.internal.CompositeSource
 import com.github.niuhf0452.exile.config.source.SimpleConfigSource
 import io.kotlintest.matchers.collections.shouldBeEmpty
 import io.kotlintest.matchers.doubles.plusOrMinus

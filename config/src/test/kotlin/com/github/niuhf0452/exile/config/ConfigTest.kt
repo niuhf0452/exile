@@ -1,6 +1,6 @@
 package com.github.niuhf0452.exile.config
 
-import com.github.niuhf0452.exile.config.impl.ReferValueResolver
+import com.github.niuhf0452.exile.config.internal.ReferValueResolver
 import io.kotlintest.matchers.boolean.shouldBeTrue
 import io.kotlintest.matchers.doubles.plusOrMinus
 import io.kotlintest.matchers.string.shouldStartWith

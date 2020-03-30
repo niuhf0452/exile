@@ -1,5 +1,4 @@
 import com.github.niuhf0452.exile.bom
-import com.github.niuhf0452.exile.submodule
 
 plugins {
     id("exile.kotlin")

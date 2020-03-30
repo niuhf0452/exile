@@ -2,7 +2,6 @@ package com.github.niuhf0452.exile.examples
 
 import com.github.niuhf0452.exile.inject.Injector
 import com.github.niuhf0452.exile.inject.Qualifiers
-import com.github.niuhf0452.exile.inject.TypeKey
 import com.github.niuhf0452.exile.inject.getInstance
 
 fun main() {

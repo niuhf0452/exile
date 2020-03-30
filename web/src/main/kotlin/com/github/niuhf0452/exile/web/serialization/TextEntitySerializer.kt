@@ -3,7 +3,7 @@ package com.github.niuhf0452.exile.web.serialization
 import com.github.niuhf0452.exile.web.MediaType
 import com.github.niuhf0452.exile.web.Responses
 import com.github.niuhf0452.exile.web.WebEntitySerializer
-import com.github.niuhf0452.exile.web.impl.DirectResponseException
+import com.github.niuhf0452.exile.web.internal.DirectResponseException
 import kotlinx.serialization.modules.SerialModule
 import kotlin.reflect.KClass
 

@@ -4,7 +4,7 @@ import com.github.niuhf0452.exile.web.MultiValueMap
 import com.github.niuhf0452.exile.web.Router
 import com.github.niuhf0452.exile.web.WebRequest
 import com.github.niuhf0452.exile.web.WebResponse
-import com.github.niuhf0452.exile.web.impl.WebRequestImpl
+import com.github.niuhf0452.exile.web.internal.WebRequestImpl
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.GlobalScope

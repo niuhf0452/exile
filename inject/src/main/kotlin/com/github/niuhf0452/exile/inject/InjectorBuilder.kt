@@ -1,6 +1,6 @@
 package com.github.niuhf0452.exile.inject
 
-import com.github.niuhf0452.exile.inject.impl.AutoConfigurator
+import com.github.niuhf0452.exile.inject.internal.AutoConfigurator
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
 

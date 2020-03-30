@@ -1,8 +1,8 @@
 package com.github.niuhf0452.exile.web
 
-import com.github.niuhf0452.exile.web.impl.DefaultTypeSafeHandlerInjector
-import com.github.niuhf0452.exile.web.impl.TypeSafeClientHandler
-import com.github.niuhf0452.exile.web.impl.TypeSafeServerHandler
+import com.github.niuhf0452.exile.web.internal.DefaultTypeSafeHandlerInjector
+import com.github.niuhf0452.exile.web.internal.TypeSafeClientHandler
+import com.github.niuhf0452.exile.web.internal.TypeSafeServerHandler
 import kotlin.reflect.KClass
 
 @MustBeDocumented

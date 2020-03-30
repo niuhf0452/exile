@@ -4,7 +4,7 @@ import com.github.niuhf0452.exile.config.Config
 import com.github.niuhf0452.exile.config.ConfigException
 import com.github.niuhf0452.exile.config.ConfigSourceLoader
 import com.github.niuhf0452.exile.config.ConfigValue
-import com.github.niuhf0452.exile.config.impl.Util.log
+import com.github.niuhf0452.exile.config.internal.Util.log
 import com.github.niuhf0452.exile.config.simpleconfig.SimpleConfigParser
 import java.io.InputStream
 import java.net.URI

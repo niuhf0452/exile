@@ -1,6 +1,5 @@
 package com.github.niuhf0452.exile.web
 
-import com.github.niuhf0452.exile.web.MediaType
 import io.kotlintest.matchers.boolean.shouldBeTrue
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.FunSpec

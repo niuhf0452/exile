@@ -7,7 +7,7 @@ import com.github.niuhf0452.exile.config.autoConfigure
 import com.github.niuhf0452.exile.inject.Injector
 import com.github.niuhf0452.exile.inject.InjectorAutoLoader
 import com.github.niuhf0452.exile.inject.TypeKey
-import com.github.niuhf0452.exile.inject.impl.getQualifiers
+import com.github.niuhf0452.exile.inject.internal.getQualifiers
 import kotlin.reflect.full.findAnnotation
 
 /**

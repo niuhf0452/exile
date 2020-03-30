@@ -1,8 +1,8 @@
 package com.github.niuhf0452.exile.web.client
 
 import com.github.niuhf0452.exile.web.*
-import com.github.niuhf0452.exile.web.impl.DataVariant
-import com.github.niuhf0452.exile.web.impl.MultiValueMapImpl
+import com.github.niuhf0452.exile.web.internal.DataVariant
+import com.github.niuhf0452.exile.web.internal.MultiValueMapImpl
 import com.github.niuhf0452.exile.web.serialization.EntitySerializers
 
 abstract class AbstractWebClient : WebClient {

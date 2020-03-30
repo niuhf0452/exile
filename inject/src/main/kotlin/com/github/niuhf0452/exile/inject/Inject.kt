@@ -3,7 +3,7 @@
 package com.github.niuhf0452.exile.inject
 
 import com.github.niuhf0452.exile.inject.binder.AutowireBinder
-import com.github.niuhf0452.exile.inject.impl.InjectorImpl
+import com.github.niuhf0452.exile.inject.internal.InjectorImpl
 import kotlin.reflect.KClass
 
 interface InjectContext {

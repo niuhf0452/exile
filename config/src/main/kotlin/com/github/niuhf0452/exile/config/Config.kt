@@ -1,9 +1,9 @@
 package com.github.niuhf0452.exile.config
 
-import com.github.niuhf0452.exile.config.impl.AutoConfigurator
-import com.github.niuhf0452.exile.config.impl.ConfigImpl
-import com.github.niuhf0452.exile.config.impl.ConfigMapperImpl
-import com.github.niuhf0452.exile.config.impl.EmptyConfig
+import com.github.niuhf0452.exile.config.internal.AutoConfigurator
+import com.github.niuhf0452.exile.config.internal.ConfigImpl
+import com.github.niuhf0452.exile.config.internal.ConfigMapperImpl
+import com.github.niuhf0452.exile.config.internal.EmptyConfig
 import com.github.niuhf0452.exile.config.simpleconfig.SimpleConfig
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.SerializationStrategy

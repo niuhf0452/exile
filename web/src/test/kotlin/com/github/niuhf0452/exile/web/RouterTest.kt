@@ -1,6 +1,6 @@
 package com.github.niuhf0452.exile.web
 
-import com.github.niuhf0452.exile.web.impl.RouterImpl
+import com.github.niuhf0452.exile.web.internal.RouterImpl
 import io.kotlintest.shouldBe
 import io.kotlintest.shouldThrow
 import io.kotlintest.specs.FunSpec

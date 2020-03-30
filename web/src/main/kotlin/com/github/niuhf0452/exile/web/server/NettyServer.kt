@@ -1,8 +1,8 @@
 package com.github.niuhf0452.exile.web.server
 
 import com.github.niuhf0452.exile.web.*
-import com.github.niuhf0452.exile.web.impl.RouterImpl
-import com.github.niuhf0452.exile.web.impl.WebRequestImpl
+import com.github.niuhf0452.exile.web.internal.RouterImpl
+import com.github.niuhf0452.exile.web.internal.WebRequestImpl
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.buffer.Unpooled
 import io.netty.channel.ChannelFutureListener

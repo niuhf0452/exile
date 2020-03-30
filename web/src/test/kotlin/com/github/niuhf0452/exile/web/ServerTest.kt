@@ -1,6 +1,6 @@
 package com.github.niuhf0452.exile.web
 
-import com.github.niuhf0452.exile.web.client.JavaClient
+import com.github.niuhf0452.exile.web.client.JdkHttpClient
 import com.github.niuhf0452.exile.web.server.JettyServer
 import com.github.niuhf0452.exile.web.server.NettyServer
 import io.kotlintest.Spec
@@ -27,7 +27,7 @@ abstract class ServerTest : FunSpec() {
 
     init {
         test("A server should respond to request") {
-            val client = JavaClient.Builder().build()
+            val client = JdkHttpClient.Builder().build()
             client.send(WebRequest
                     .newBuilder("http://localhost:${server.port}/test")
                     .method("GET")
