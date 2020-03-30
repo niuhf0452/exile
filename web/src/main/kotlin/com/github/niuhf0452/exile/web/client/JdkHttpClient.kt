@@ -1,10 +1,9 @@
 package com.github.niuhf0452.exile.web.client
 
+import com.github.niuhf0452.exile.web.MultiValueMap
 import com.github.niuhf0452.exile.web.WebClient
 import com.github.niuhf0452.exile.web.WebRequest
 import com.github.niuhf0452.exile.web.WebResponse
-import com.github.niuhf0452.exile.web.internal.MultiValueMapImpl
-import com.github.niuhf0452.exile.web.internal.WebResponseImpl
 import kotlinx.coroutines.future.await
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
@@ -25,23 +24,23 @@ class JdkHttpClient(
                 builder.header(name, value)
             }
         }
-        val body = if (request.hasEntity) {
-            HttpRequest.BodyPublishers.ofByteArray(request.entity)
-        } else {
+        val body = if (request.entity == null) {
             HttpRequest.BodyPublishers.noBody()
+        } else {
+            HttpRequest.BodyPublishers.ofByteArray(request.entity)
         }
         val req = builder.method(request.method, body)
                 .build()
         val resp = client.sendAsync(req, HttpResponse.BodyHandlers.ofByteArray()).await()
-        val headers = MultiValueMapImpl(false)
+        val headers = MultiValueMap(false)
         resp.headers().map().forEach { (k, v) ->
             headers.set(k, v)
         }
-        return if (resp.body() == null || resp.body().isEmpty()) {
-            WebResponseImpl.NoEntity(resp.statusCode(), headers)
-        } else {
-            WebResponseImpl(resp.statusCode(), headers, resp.body())
+        var entity = resp.body()
+        if (entity != null && entity.isEmpty()) {
+            entity = null
         }
+        return WebResponse(resp.statusCode(), headers, entity)
     }
 
     class Builder : AbstractWebClientBuilder() {

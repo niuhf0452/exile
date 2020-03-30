@@ -34,30 +34,31 @@ class RouterImpl(
         val pathVariables = mutableMapOf<String, String>()
         val route = matchRoute(method, path, pathVariables)
                 ?: return NotFound
-        val consumes = request.headers.get("Content-Type").firstOrNull()
+        val contentType = request.headers.get("Content-Type").firstOrNull()
                 ?.let { MediaType.parse(it) }
                 ?: MediaType.APPLICATION_JSON
-        val produces = request.headers.get("Accept").firstOrNull()
+        val acceptType = request.headers.get("Accept").firstOrNull()
                 ?.let { MediaType.parse(it) }
                 ?: MediaType.ALL
-        val deserializer = EntitySerializers.getSerializer(consumes)
+        val deserializer = EntitySerializers.getSerializer(contentType)
                 ?: return UnsupportedMediaType
-        val serializer = EntitySerializers.getSerializer(produces)
+        val defaultSerializer = EntitySerializers.getSerializer(acceptType)
                 ?: return NotAcceptable
         val response = try {
-            val request0 = makeRequest(request, deserializer, consumes)
+            val request0 = makeRequest(request, deserializer, contentType)
             val context = ContextImpl(route.path, pathVariables, request0)
             val response = route.handler.onRequest(context)
-            makeResponse(response, serializer, produces)
+            makeResponse(response, defaultSerializer, acceptType)
         } catch (ex: DirectResponseException) {
             ex.response
         } catch (ex: Exception) {
             exceptionHandler.handle(ex)
         }
         // make sure connection header is always set correctly.
-        return response.mapHeaders {
-            addConnectionHeader(request, response)
-        }
+        addConnectionHeader(response, request)
+        addContentLengthHeader(response)
+        addServerHeader(response)
+        return response
     }
 
     override fun setExceptionHandler(handler: WebExceptionHandler) {
@@ -86,42 +87,66 @@ class RouterImpl(
     private fun makeRequest(request: WebRequest<ByteArray>,
                             deserializer: WebEntitySerializer,
                             mediaType: MediaType): WebRequest<Variant> {
-        return request.mapEntity { data ->
-            DataVariant(data, deserializer, mediaType)
+        if (request.entity == null) {
+            @Suppress("UNCHECKED_CAST")
+            return request as WebRequest<Variant>
         }
+        val entity = DataVariant(request.entity, deserializer, mediaType)
+        return WebRequest(request.uri, request.method, request.headers, entity)
     }
 
     private fun makeResponse(response: WebResponse<Any>,
-                             produceSerializer: WebEntitySerializer,
-                             produces: MediaType): WebResponse<ByteArray> {
+                             defaultSerializer: WebEntitySerializer,
+                             acceptType: MediaType): WebResponse<ByteArray> {
+        var serializer = defaultSerializer
         val contentType = response.headers.get("Content-Type").firstOrNull()
                 ?.let { MediaType.parse(it) }
-                ?: produces
-        val serializer0 = when {
-            contentType == produces -> produceSerializer
-            produces.isAcceptable(contentType) ->
-                EntitySerializers.getSerializer(contentType)
-                        ?: throw DirectResponseException(NotAcceptable)
-            else -> throw DirectResponseException(NotAcceptable)
+                ?: acceptType
+        if (contentType !== acceptType) {
+            if (!acceptType.isAcceptable(contentType)) {
+                throw DirectResponseException(NotAcceptable)
+            }
+            serializer = EntitySerializers.getSerializer(contentType)
+                    ?: throw DirectResponseException(NotAcceptable)
         }
-        return response.mapEntity { entity ->
-            when (entity) {
-                is ByteArray -> entity
-                else -> serializer0.serialize(entity, contentType)
+        return when (response.entity) {
+            null, is ByteArray -> {
+                @Suppress("UNCHECKED_CAST")
+                response as WebResponse<ByteArray>
+            }
+            else -> {
+                val entity = serializer.serialize(response.entity, contentType)
+                if (contentType === acceptType) {
+                    response.headers.set("Content-Type", listOf(contentType.toString()))
+                }
+                WebResponse(response.statusCode, response.headers, entity)
             }
         }
     }
 
-    private fun addConnectionHeader(request: WebRequest<ByteArray>, response: WebResponse<Any>): MultiValueMap {
+    private fun addConnectionHeader(response: WebResponse<ByteArray>, request: WebRequest<ByteArray>) {
         val connectionValue = when {
             !config.keepAlive
                     || request.headers.get("Connection").firstOrNull() == "close"
                     || response.headers.get("Connection").firstOrNull() == "close" -> "close"
             else -> "keep-alive"
         }
-        val headers = MultiValueMapImpl(response.headers, false)
-        headers.set("Connection", listOf(connectionValue))
-        return headers
+        response.headers.set("Connection", listOf(connectionValue))
+    }
+
+    private fun addContentLengthHeader(response: WebResponse<ByteArray>) {
+        if (response.entity == null) {
+            response.headers.remove("Content-Length")
+        } else {
+            response.headers.set("Content-Length", listOf(response.entity.size.toString()))
+        }
+    }
+
+    private fun addServerHeader(response: WebResponse<ByteArray>) {
+        if (config.serverHeader.isNotEmpty()
+                && response.headers.get("Server").firstOrNull() == null) {
+            response.headers.add("Server", config.serverHeader)
+        }
     }
 
     private data class RouteKey(val method: String, val path: String)
@@ -160,17 +185,17 @@ class RouterImpl(
             override val pathParams: Map<String, String>,
             override val request: WebRequest<Variant>
     ) : RequestContext {
-        override val queryParams: MultiValueMap = run {
+        override val queryParams = MultiValueMap(true)
+
+        init {
             val queryString = request.uri.rawQuery
-            if (queryString == null || queryString.isEmpty()) {
-                MultiValueMap.Empty
-            } else {
-                val map = MultiValueMapImpl(true)
+            if (queryString != null && queryString.isNotEmpty()) {
                 queryString.split('&').forEach { kv ->
                     val (k, v) = kv.split('=', limit = 2)
-                    map.add(URLDecoder.decode(k, Charsets.UTF_8), URLDecoder.decode(v, Charsets.UTF_8))
+                    val k0 = URLDecoder.decode(k, Charsets.UTF_8)
+                    val v0 = URLDecoder.decode(v, Charsets.UTF_8)
+                    queryParams.add(k0, v0)
                 }
-                map
             }
         }
     }

@@ -34,7 +34,7 @@ object TypeSafeClientHandler {
         }
         val returnClass = method.returnType.classifier as? KClass<*>
                 ?: throw IllegalArgumentException("The return type is not supported: $method")
-        return MethodHandler(method, a.path, param, returnClass)
+        return MethodHandler(method, a.method, a.path, param, returnClass)
     }
 
     private fun parsePathParam(parameter: KParameter, index: Int): ParameterBuilder? {
@@ -99,14 +99,15 @@ object TypeSafeClientHandler {
     }
 
     private class MethodHandler(
-            override val method: KFunction<*>,
+            override val function: KFunction<*>,
+            private val method: String,
             private val path: String,
             private val parameters: List<ParameterBuilder>,
             private val returnClass: KClass<*>
     ) : AsyncMethodHandler<State>() {
         override suspend fun asyncCall(state: State, instance: Any, args: Array<out Any?>?): Any? {
             val (client, uri) = state
-            val builder: WebRequest.Builder<*> = WebRequest.newBuilder(Util.joinPath(uri, path))
+            val builder = WebRequest.newBuilder(method, Util.joinPath(uri, path))
             if (args != null) {
                 parameters.forEach { p ->
                     p.build(builder, args[p.index])
@@ -115,10 +116,7 @@ object TypeSafeClientHandler {
             @Suppress("UNCHECKED_CAST")
             val request = builder.build() as WebRequest<Any>
             val response = client.send(request)
-            if (response.hasEntity) {
-                return response.entity.convertTo(returnClass)
-            }
-            return null
+            return response.entity?.convertTo(returnClass)
         }
     }
 

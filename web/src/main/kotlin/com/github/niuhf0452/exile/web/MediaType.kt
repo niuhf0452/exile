@@ -4,6 +4,7 @@ import java.nio.charset.Charset
 import java.nio.charset.UnsupportedCharsetException
 
 data class MediaType(
+        val text: String,
         val type: String,
         val subtype: String,
         val tree: String? = null,
@@ -15,6 +16,10 @@ data class MediaType(
                 && (subtype == "*" || subtype == m.subtype)
                 && (subtype == "*" || tree == m.tree)
                 && (subtype == "*" || suffix == m.suffix)
+    }
+
+    override fun toString(): String {
+        return text
     }
 
     companion object {
@@ -63,7 +68,7 @@ data class MediaType(
             val subtype = m.group(3)
             val suffix = m.group(4)
             val charset = getCharset(value, m.end())
-            return MediaType(type, subtype, tree, suffix, charset)
+            return MediaType(value, type, subtype, tree, suffix, charset)
         }
 
         private fun getCharset(value: String, start: Int): Charset {

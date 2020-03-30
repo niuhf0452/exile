@@ -5,13 +5,12 @@ import io.kotlintest.shouldBe
 import io.kotlintest.specs.FunSpec
 
 class TypeSafeServerTest : FunSpec({
-    fun WebResponse<ByteArray>.message() = entity.toString(Charsets.UTF_8)
+    fun WebResponse<ByteArray>.message() = entity!!.toString(Charsets.UTF_8)
 
     test("A router should support type safe handler") {
         val router = RouterImpl(WebServer.Config())
         router.addTypeSafeHandler(Q1::class)
-        router.onRequest(WebRequest.newBuilder("http://localhost/test")
-                .method("GET")
+        router.onRequest(WebRequest.newBuilder("GET", "http://localhost/test")
                 .addHeader("Accept", "text/plain")
                 .build())
                 .message() shouldBe "hello"
@@ -20,8 +19,7 @@ class TypeSafeServerTest : FunSpec({
     test("A type safe handler should read path variable") {
         val router = RouterImpl(WebServer.Config())
         router.addTypeSafeHandler(Q2::class)
-        router.onRequest(WebRequest.newBuilder("http://localhost/test/abc")
-                .method("GET")
+        router.onRequest(WebRequest.newBuilder("GET", "http://localhost/test/abc")
                 .addHeader("Accept", "text/plain")
                 .build())
                 .message() shouldBe "hello, abc"
@@ -30,8 +28,7 @@ class TypeSafeServerTest : FunSpec({
     test("A type safe handler should read query string") {
         val router = RouterImpl(WebServer.Config())
         router.addTypeSafeHandler(Q3::class)
-        router.onRequest(WebRequest.newBuilder("http://localhost/test")
-                .method("GET")
+        router.onRequest(WebRequest.newBuilder("GET", "http://localhost/test")
                 .addQueryParam("name", "abc")
                 .addHeader("Accept", "text/plain")
                 .build())
@@ -41,8 +38,7 @@ class TypeSafeServerTest : FunSpec({
     test("A type safe handler should read query string with customized name") {
         val router = RouterImpl(WebServer.Config())
         router.addTypeSafeHandler(Q4::class)
-        router.onRequest(WebRequest.newBuilder("http://localhost/test")
-                .method("GET")
+        router.onRequest(WebRequest.newBuilder("GET", "http://localhost/test")
                 .addQueryParam("n", "abc")
                 .addHeader("Accept", "text/plain")
                 .build())
@@ -52,8 +48,7 @@ class TypeSafeServerTest : FunSpec({
     test("A type safe handler should convert parameter type") {
         val router = RouterImpl(WebServer.Config())
         router.addTypeSafeHandler(Q5::class)
-        router.onRequest(WebRequest.newBuilder("http://localhost/test")
-                .method("GET")
+        router.onRequest(WebRequest.newBuilder("GET", "http://localhost/test")
                 .addQueryParam("i", "6")
                 .addQueryParam("l", "100")
                 .addQueryParam("d", 6.9.toString())
@@ -67,8 +62,7 @@ class TypeSafeServerTest : FunSpec({
     test("A type safe handler should accept list variable") {
         val router = RouterImpl(WebServer.Config())
         router.addTypeSafeHandler(Q6::class)
-        router.onRequest(WebRequest.newBuilder("http://localhost/test")
-                .method("GET")
+        router.onRequest(WebRequest.newBuilder("GET", "http://localhost/test")
                 .addQueryParam("i", "1")
                 .addQueryParam("i", "2")
                 .addQueryParam("i", "3")

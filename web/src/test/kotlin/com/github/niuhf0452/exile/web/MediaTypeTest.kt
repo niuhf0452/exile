@@ -6,13 +6,15 @@ import io.kotlintest.specs.FunSpec
 
 class MediaTypeTest : FunSpec({
     test("MediaType should parse string") {
-        MediaType.parse("application/json") shouldBe MediaType("application", "json")
-        MediaType.parse("text/html;charset = utf-8") shouldBe MediaType("text", "html")
-        MediaType.parse("*/*") shouldBe MediaType("*", "*")
+        MediaType.parse("application/json") shouldBe MediaType(
+                "application/json", "application", "json")
+        MediaType.parse("text/html;charset = utf-8") shouldBe MediaType(
+                "text/html;charset = utf-8", "text", "html")
+        MediaType.parse("*/*") shouldBe MediaType("*/*", "*", "*")
     }
 
     test("*/* should accept any others") {
-        val any = MediaType("*", "*")
+        val any = MediaType("*/*", "*", "*")
         any.isAcceptable(MediaType.parse("application/json")).shouldBeTrue()
         any.isAcceptable(MediaType.parse("text/plain")).shouldBeTrue()
         any.isAcceptable(any).shouldBeTrue()

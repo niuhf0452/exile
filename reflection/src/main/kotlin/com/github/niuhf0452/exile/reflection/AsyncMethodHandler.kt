@@ -4,12 +4,12 @@ import kotlinx.coroutines.runBlocking
 import kotlin.reflect.KFunction
 
 abstract class AsyncMethodHandler<in A> : ProxyMethodHandler<A> {
-    protected abstract val method: KFunction<*>
+    protected abstract val function: KFunction<*>
 
     protected abstract suspend fun asyncCall(state: A, instance: Any, args: Array<out Any?>?): Any?
 
     final override fun call(state: A, instance: Any, args: Array<out Any?>?): Any? {
-        if (method.isSuspend) {
+        if (function.isSuspend) {
             args!!
             val args0 = if (args.size == 1) {
                 null

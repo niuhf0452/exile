@@ -8,5 +8,7 @@ object Responses {
     val NotAcceptable = status(406)
     val UnsupportedMediaType = status(415)
 
-    private fun status(value: Int): WebResponse<ByteArray> = WebResponse.newBuilder().statusCode(value).build()
+    private fun status(value: Int): WebResponse<Nothing> {
+        return WebResponse.newBuilder().statusCode(value).build()
+    }
 }

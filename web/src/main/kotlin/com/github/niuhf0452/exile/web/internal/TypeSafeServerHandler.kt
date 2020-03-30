@@ -171,10 +171,14 @@ class TypeSafeServerHandler(
                 ?: throw IllegalArgumentException("@WebMethod parameter type is unsupported: $parameter")
 
         override fun get(context: RequestContext): Any? {
-            if (!context.request.hasEntity && parameter.isOptional) {
-                return defaultValuePlaceHolder
+            val value = context.request.entity?.convertTo(cls)
+            if (value != null) {
+                return value
             }
-            return context.request.entity.convertTo(cls)
+            if (!parameter.isOptional) {
+                throw FailureResponseException(400, "Entity is missing")
+            }
+            return defaultValuePlaceHolder
         }
     }
 

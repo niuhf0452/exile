@@ -1,33 +1,26 @@
-package com.github.niuhf0452.exile.web.internal
+package com.github.niuhf0452.exile.web
 
-import com.github.niuhf0452.exile.web.MultiValueMap
 import java.util.*
 import kotlin.collections.ArrayList
 
-class MultiValueMapImpl(caseSensitivity: Boolean) : MultiValueMap {
+class MultiValueMap(caseSensitivity: Boolean) : Iterable<String> {
     private val headers: MutableMap<String, MutableList<String>> =
             if (caseSensitivity) HashMap() else TreeMap(String.CASE_INSENSITIVE_ORDER)
 
     constructor(value: MultiValueMap, caseSensitivity: Boolean) : this(caseSensitivity) {
-        if (value is MultiValueMapImpl) {
-            headers.putAll(value.headers)
-        } else {
-            value.forEach { name ->
-                set(name, value.get(name))
-            }
-        }
+        headers.putAll(value.headers)
     }
 
-    override val isEmpty: Boolean
+    val isEmpty: Boolean
         get() = headers.isEmpty()
-
-    override fun get(name: String): Iterable<String> {
-        return headers[name]
-                ?: emptyList()
-    }
 
     override fun iterator(): Iterator<String> {
         return headers.keys.iterator()
+    }
+
+    fun get(name: String): Iterable<String> {
+        return headers[name]
+                ?: emptyList()
     }
 
     fun set(value: Map<String, String>) {

@@ -1,6 +1,7 @@
 package com.github.niuhf0452.exile.web
 
 import com.github.niuhf0452.exile.web.internal.RouterImpl
+import io.kotlintest.matchers.types.shouldNotBeNull
 import io.kotlintest.shouldBe
 import io.kotlintest.shouldThrow
 import io.kotlintest.specs.FunSpec
@@ -8,7 +9,7 @@ import kotlinx.serialization.Serializable
 
 class RouterTest : FunSpec({
     fun WebResponse<ByteArray>.message(): String {
-        return entity.toString(Charsets.UTF_8)
+        return entity!!.toString(Charsets.UTF_8)
     }
 
     test("A router should route by path") {
@@ -16,13 +17,11 @@ class RouterTest : FunSpec({
         router.addRoute("GET", "foo", TextHandler("foo"))
         router.addRoute("GET", "bar", TextHandler("bar"))
         router.onRequest(WebRequest
-                .newBuilder("http://localhost/foo")
-                .method("GET")
+                .newBuilder("GET", "http://localhost/foo")
                 .build())
                 .message() shouldBe "foo"
         router.onRequest(WebRequest
-                .newBuilder("http://localhost/bar")
-                .method("GET")
+                .newBuilder("GET", "http://localhost/bar")
                 .build())
                 .message() shouldBe "bar"
     }
@@ -32,13 +31,11 @@ class RouterTest : FunSpec({
         router.addRoute("GET", "foo", TextHandler("foo"))
         router.addRoute("PUT", "foo", TextHandler("bar"))
         router.onRequest(WebRequest
-                .newBuilder("http://localhost/foo")
-                .method("GET")
+                .newBuilder("GET", "http://localhost/foo")
                 .build())
                 .message() shouldBe "foo"
         router.onRequest(WebRequest
-                .newBuilder("http://localhost/foo")
-                .method("PUT")
+                .newBuilder("PUT", "http://localhost/foo")
                 .build())
                 .message() shouldBe "bar"
     }
@@ -46,8 +43,7 @@ class RouterTest : FunSpec({
     test("A router should return 404 is no route matched") {
         val router = RouterImpl(WebServer.Config())
         router.onRequest(WebRequest
-                .newBuilder("http://localhost/foo")
-                .method("GET")
+                .newBuilder("GET", "http://localhost/foo")
                 .build())
                 .statusCode shouldBe 404
     }
@@ -64,8 +60,7 @@ class RouterTest : FunSpec({
         val router = RouterImpl(WebServer.Config())
         router.addRoute("GET", "foo", ObjectHandler("foo"))
         val response = router.onRequest(WebRequest
-                .newBuilder("http://localhost/foo")
-                .method("GET")
+                .newBuilder("GET", "http://localhost/foo")
                 .addHeader("Accept", "foo/bar")
                 .build())
         response.statusCode shouldBe 406
@@ -75,8 +70,7 @@ class RouterTest : FunSpec({
         val router = RouterImpl(WebServer.Config())
         router.addRoute("GET", "foo", TextHandler("foo"))
         val response = router.onRequest(WebRequest
-                .newBuilder("http://localhost/foo")
-                .method("GET")
+                .newBuilder("GET", "http://localhost/foo")
                 .addHeader("Accept", "application/json")
                 .build())
         response.statusCode shouldBe 406
@@ -86,8 +80,7 @@ class RouterTest : FunSpec({
         val router = RouterImpl(WebServer.Config())
         router.addRoute("GET", "foo", TextHandler("foo"))
         val response = router.onRequest(WebRequest
-                .newBuilder("http://localhost/foo")
-                .method("GET")
+                .newBuilder("GET", "http://localhost/foo")
                 .addHeader("Accept", "*/*")
                 .build())
         response.statusCode shouldBe 200
@@ -97,8 +90,7 @@ class RouterTest : FunSpec({
         val router = RouterImpl(WebServer.Config(keepAlive = true))
         router.addRoute("GET", "foo", TextHandler("foo"))
         val response = router.onRequest(WebRequest
-                .newBuilder("http://localhost/foo")
-                .method("GET")
+                .newBuilder("GET", "http://localhost/foo")
                 .build())
         response.headers.get("Connection").firstOrNull() shouldBe "keep-alive"
     }
@@ -107,8 +99,7 @@ class RouterTest : FunSpec({
         val router = RouterImpl(WebServer.Config(keepAlive = false))
         router.addRoute("GET", "foo", TextHandler("foo"))
         val response = router.onRequest(WebRequest
-                .newBuilder("http://localhost/foo")
-                .method("GET")
+                .newBuilder("GET", "http://localhost/foo")
                 .build())
         response.headers.get("Connection").firstOrNull() shouldBe "close"
     }
@@ -117,8 +108,7 @@ class RouterTest : FunSpec({
         val router = RouterImpl(WebServer.Config())
         router.addRoute("GET", "foo", TextHandler("foo"))
         val response = router.onRequest(WebRequest
-                .newBuilder("http://localhost/foo")
-                .method("GET")
+                .newBuilder("GET", "http://localhost/foo")
                 .addHeader("Connection", "close")
                 .build())
         response.headers.get("Connection").firstOrNull() shouldBe "close"
@@ -128,8 +118,7 @@ class RouterTest : FunSpec({
         val router = RouterImpl(WebServer.Config())
         router.addRoute("GET", "/greeting/:name", GreetingHandler())
         router.onRequest(WebRequest
-                .newBuilder("http://localhost/greeting/abc")
-                .method("GET")
+                .newBuilder("GET", "http://localhost/greeting/abc")
                 .build())
                 .message() shouldBe "abc"
     }
@@ -138,8 +127,7 @@ class RouterTest : FunSpec({
         val router = RouterImpl(WebServer.Config())
         router.addRoute("GET", "/error", ErrorTriggerHandler(IllegalStateException()))
         val response = router.onRequest(WebRequest
-                .newBuilder("http://localhost/error")
-                .method("GET")
+                .newBuilder("GET", "http://localhost/error")
                 .build())
         response.statusCode shouldBe 500
     }
@@ -153,10 +141,41 @@ class RouterTest : FunSpec({
             }
         })
         val response = router.onRequest(WebRequest
-                .newBuilder("http://localhost/error")
-                .method("GET")
+                .newBuilder("GET", "http://localhost/error")
                 .build())
         response.statusCode shouldBe 500
+    }
+
+    test("A router should return Content-Length") {
+        val router = RouterImpl(WebServer.Config())
+        router.addRoute("GET", "/test", TextHandler("abc"))
+        val response = router.onRequest(WebRequest
+                .newBuilder("GET", "http://localhost/test")
+                .build())
+        response.statusCode shouldBe 200
+        val value = response.headers.get("Content-Length").firstOrNull()
+        value.shouldNotBeNull()
+        value.toInt() shouldBe 3
+    }
+
+    test("A router should return Server") {
+        val router = RouterImpl(WebServer.Config(serverHeader = "test"))
+        router.addRoute("GET", "/test", TextHandler("abc"))
+        val response = router.onRequest(WebRequest
+                .newBuilder("GET", "http://localhost/test")
+                .build())
+        response.statusCode shouldBe 200
+        response.headers.get("Server").firstOrNull() shouldBe "test"
+    }
+
+    test("A router should return Content-Type") {
+        val router = RouterImpl(WebServer.Config(serverHeader = "test"))
+        router.addRoute("GET", "/test", ObjectHandler("abc"))
+        val response = router.onRequest(WebRequest
+                .newBuilder("GET", "http://localhost/test")
+                .build())
+        response.statusCode shouldBe 200
+        response.headers.get("Content-Type").firstOrNull() shouldBe "application/json"
     }
 }) {
     class TextHandler(

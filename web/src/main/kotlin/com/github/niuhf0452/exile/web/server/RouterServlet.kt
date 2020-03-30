@@ -4,7 +4,6 @@ import com.github.niuhf0452.exile.web.MultiValueMap
 import com.github.niuhf0452.exile.web.Router
 import com.github.niuhf0452.exile.web.WebRequest
 import com.github.niuhf0452.exile.web.WebResponse
-import com.github.niuhf0452.exile.web.internal.WebRequestImpl
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.GlobalScope
@@ -44,13 +43,19 @@ class RouterServlet(
 
     private suspend fun readRequest(asyncContext: AsyncContext, req: HttpServletRequest): WebRequest<ByteArray> {
         val uri = URI.create(req.requestURI)
-        val headers = HeaderAdapter(req)
+        val headers = readHeaders(req)
         val bytes = readInput(asyncContext.request.inputStream).await()
-        return if (bytes.isEmpty()) {
-            WebRequestImpl.NoEntity(uri, req.method, headers)
-        } else {
-            WebRequestImpl(uri, req.method, headers, bytes)
+        return WebRequest(uri, req.method, headers, if (bytes.isEmpty()) null else bytes)
+    }
+
+    private fun readHeaders(servletRequest: HttpServletRequest): MultiValueMap {
+        val headers = MultiValueMap(false)
+        val e = servletRequest.headerNames
+        while (e.hasMoreElements()) {
+            val name = e.nextElement()
+            headers.set(name, servletRequest.getHeaders(name).toList())
         }
+        return headers
     }
 
     private fun readInput(input: ServletInputStream): CompletableFuture<ByteArray> {
@@ -95,33 +100,8 @@ class RouterServlet(
                 servletResponse.addHeader(name, value)
             }
         }
-        if (hasEntity) {
+        if (entity != null) {
             servletResponse.outputStream.write(entity)
-        }
-    }
-
-    private class HeaderAdapter(
-            private val servletRequest: HttpServletRequest
-    ) : MultiValueMap {
-        override val isEmpty: Boolean
-            get() = !servletRequest.headerNames.hasMoreElements()
-
-        override fun get(name: String): Iterable<String> {
-            return HeaderValues(servletRequest, name)
-        }
-
-        override fun iterator(): Iterator<String> {
-            return servletRequest.headerNames.asIterator()
-        }
-    }
-
-    private class HeaderValues(
-            private val servletRequest: HttpServletRequest,
-            private val name: String
-    ) : Iterable<String> {
-        override fun iterator(): Iterator<String> {
-            return servletRequest.getHeaders(name)?.asIterator()
-                    ?: emptyList<String>().iterator()
         }
     }
 }

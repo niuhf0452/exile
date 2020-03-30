@@ -2,7 +2,6 @@ package com.github.niuhf0452.exile.web.server
 
 import com.github.niuhf0452.exile.web.*
 import com.github.niuhf0452.exile.web.internal.RouterImpl
-import com.github.niuhf0452.exile.web.internal.WebRequestImpl
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.buffer.Unpooled
 import io.netty.channel.ChannelFutureListener
@@ -90,43 +89,35 @@ class NettyServer(
         private fun makeRequest(nettyRequest: FullHttpRequest): WebRequest<ByteArray> {
             val uri = URI.create(nettyRequest.uri())
             val method = nettyRequest.method().name()
-            val headers = HeadersAdapter(nettyRequest.headers())
+            val headers = readHeaders(nettyRequest.headers())
             val buf = nettyRequest.content()
             if (buf == null || buf.readableBytes() == 0) {
-                return WebRequestImpl.NoEntity(uri, method, headers)
+                return WebRequest(uri, method, headers, null)
             }
             val bytes = ByteArray(buf.readableBytes())
             buf.readBytes(bytes)
-            return WebRequestImpl(uri, method, headers, bytes)
+            return WebRequest(uri, method, headers, bytes)
+        }
+
+        private fun readHeaders(nettyHeaders: HttpHeaders): MultiValueMap {
+            val headers = MultiValueMap(false)
+            nettyHeaders.names().forEach { name ->
+                headers.set(name, nettyHeaders.getAll(name))
+            }
+            return headers
         }
 
         private fun WebResponse<ByteArray>.toNettyResponse(): FullHttpResponse {
-            val resp = if (hasEntity) {
+            val resp = if (entity == null) {
+                DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.valueOf(statusCode))
+            } else {
                 val content = Unpooled.wrappedBuffer(entity)
                 DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.valueOf(statusCode), content)
-            } else {
-                DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.valueOf(statusCode))
             }
             headers.forEach { name ->
                 resp.headers().set(name, headers.get(name))
             }
             return resp
-        }
-    }
-
-    private class HeadersAdapter(
-            private val headers: HttpHeaders
-    ) : MultiValueMap {
-        override val isEmpty: Boolean
-            get() = headers.isEmpty
-
-        override fun get(name: String): Iterable<String> {
-            return headers.getAll(name)
-                    ?: emptyList()
-        }
-
-        override fun iterator(): Iterator<String> {
-            return headers.names().iterator()
         }
     }
 }
