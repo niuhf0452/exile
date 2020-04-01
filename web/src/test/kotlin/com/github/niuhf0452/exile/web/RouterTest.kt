@@ -9,6 +9,7 @@ import kotlinx.serialization.Serializable
 
 class RouterTest : FunSpec({
     fun WebResponse<ByteArray>.message(): String {
+        statusCode shouldBe 200
         return entity!!.toString(Charsets.UTF_8)
     }
 

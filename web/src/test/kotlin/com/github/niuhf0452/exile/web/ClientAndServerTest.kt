@@ -4,6 +4,7 @@ import com.github.niuhf0452.exile.web.client.JdkHttpClient
 import com.github.niuhf0452.exile.web.server.JettyServer
 import com.github.niuhf0452.exile.web.server.NettyServer
 import io.kotlintest.Spec
+import io.kotlintest.matchers.types.shouldBeNull
 import io.kotlintest.matchers.types.shouldNotBeNull
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.FunSpec
@@ -25,13 +26,13 @@ abstract class ClientAndServerTest(
     private val server = serverFactory.startServer(WebServer.Config(), Dispatchers.Default)
 
     init {
-//        test("A client should send request") {
-//            val response = client.send(WebRequest.newBuilder("http://localhost:${server.port}/test1")
-//                    .method("GET")
-//                    .build())
-//            response.statusCode shouldBe 204
-//            response.hasEntity.shouldBeFalse()
-//        }
+        test("A client should send request") {
+            val response = client.send(WebRequest
+                    .newBuilder("GET","http://localhost:${server.port}/test1")
+                    .build())
+            response.statusCode shouldBe 204
+            response.entity.shouldBeNull()
+        }
 
         test("A client should get response entity") {
             val response = client.send(WebRequest

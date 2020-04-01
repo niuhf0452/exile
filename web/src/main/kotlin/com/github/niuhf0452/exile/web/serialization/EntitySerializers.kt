@@ -12,8 +12,21 @@ object EntitySerializers {
     fun getSerializer(mediaType: MediaType): WebEntitySerializer? {
         serializers.forEach { s ->
             s.mediaTypes.forEach { m ->
-                if (mediaType.isAcceptable(m)) {
+                if (m.isAcceptable(mediaType)) {
                     return s
+                }
+            }
+        }
+        return null
+    }
+
+    fun acceptSerializer(acceptTypes: List<MediaType>): Pair<MediaType, WebEntitySerializer>? {
+        serializers.forEach { s ->
+            s.mediaTypes.forEach { m ->
+                acceptTypes.forEach { a ->
+                    if (a.isAcceptable(m)) {
+                        return m to s
+                    }
                 }
             }
         }

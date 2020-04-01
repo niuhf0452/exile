@@ -20,7 +20,7 @@ class JsonEntitySerializer(
     }
 
     override fun deserialize(data: ByteArray, cls: KClass<*>, mediaType: MediaType): Any {
-        return Json.parse(module.getContextualOrDefault(data), data.toString(Charsets.UTF_8))
+        return Json.parse(module.getContextualOrDefault(cls), data.toString(Charsets.UTF_8))
     }
 
     class Factory : WebEntitySerializer.Factory {

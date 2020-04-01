@@ -37,18 +37,18 @@ class RouterImpl(
         val contentType = request.headers.get("Content-Type").firstOrNull()
                 ?.let { MediaType.parse(it) }
                 ?: MediaType.APPLICATION_JSON
-        val acceptType = request.headers.get("Accept").firstOrNull()
-                ?.let { MediaType.parse(it) }
-                ?: MediaType.ALL
+        val acceptTypes = request.headers.get("Accept").map { MediaType.parse(it) }
+                .let { if (it.isEmpty()) listOf(MediaType.ALL) else it }
         val deserializer = EntitySerializers.getSerializer(contentType)
                 ?: return UnsupportedMediaType
-        val defaultSerializer = EntitySerializers.getSerializer(acceptType)
+        val (defaultType, defaultSerializer) = EntitySerializers
+                .acceptSerializer(acceptTypes)
                 ?: return NotAcceptable
         val response = try {
             val request0 = makeRequest(request, deserializer, contentType)
             val context = ContextImpl(route.path, pathVariables, request0)
             val response = route.handler.onRequest(context)
-            makeResponse(response, defaultSerializer, acceptType)
+            makeResponse(response, defaultType, defaultSerializer, acceptTypes)
         } catch (ex: DirectResponseException) {
             ex.response
         } catch (ex: Exception) {
@@ -96,14 +96,15 @@ class RouterImpl(
     }
 
     private fun makeResponse(response: WebResponse<Any>,
+                             defaultType: MediaType,
                              defaultSerializer: WebEntitySerializer,
-                             acceptType: MediaType): WebResponse<ByteArray> {
+                             acceptTypes: List<MediaType>): WebResponse<ByteArray> {
         var serializer = defaultSerializer
         val contentType = response.headers.get("Content-Type").firstOrNull()
                 ?.let { MediaType.parse(it) }
-                ?: acceptType
-        if (contentType !== acceptType) {
-            if (!acceptType.isAcceptable(contentType)) {
+                ?: defaultType
+        if (contentType !== defaultType) {
+            if (!isAcceptable(acceptTypes, contentType)) {
                 throw DirectResponseException(NotAcceptable)
             }
             serializer = EntitySerializers.getSerializer(contentType)
@@ -116,12 +117,21 @@ class RouterImpl(
             }
             else -> {
                 val entity = serializer.serialize(response.entity, contentType)
-                if (contentType === acceptType) {
+                if (contentType === defaultType) {
                     response.headers.set("Content-Type", listOf(contentType.toString()))
                 }
                 WebResponse(response.statusCode, response.headers, entity)
             }
         }
+    }
+
+    private fun isAcceptable(acceptTypes: List<MediaType>, mediaType: MediaType): Boolean {
+        acceptTypes.forEach { a ->
+            if (a.isAcceptable(mediaType)) {
+                return true
+            }
+        }
+        return false
     }
 
     private fun addConnectionHeader(response: WebResponse<ByteArray>, request: WebRequest<ByteArray>) {
