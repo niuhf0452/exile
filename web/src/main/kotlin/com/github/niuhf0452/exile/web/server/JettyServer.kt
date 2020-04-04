@@ -12,26 +12,26 @@ import javax.servlet.Servlet
 import kotlin.coroutines.CoroutineContext
 
 class JettyServer(
-        router: Router,
         private val server: Server,
-        override val port: Int
-) : WebServer, Router by router {
+        override val port: Int,
+        override val router: Router
+) : WebServer {
     override fun close() {
         server.stop()
     }
 
     class Factory : WebServer.Factory {
-        override fun startServer(config: WebServer.Config, coroutineContext: CoroutineContext): WebServer {
-            val router = RouterImpl(config)
+        override fun startServer(config: WebServer.Config, coroutineContext: CoroutineContext, router: Router?): WebServer {
+            val router0 = router ?: RouterImpl(config)
             val server = Server(config.port)
             val servletContext = ServletContextHandler()
             setMaxHeaderSize(server, config.maxHeaderSize)
-            addServlet(servletContext, RouterServlet(router, coroutineContext))
+            addServlet(servletContext, RouterServlet(router0, coroutineContext))
             servletContext.contextPath = config.contextPath
             servletContext.classLoader = this.javaClass.classLoader
             server.handler = servletContext
             server.start()
-            return JettyServer(router, server, getPort(server))
+            return JettyServer(server, getPort(server), router0)
         }
 
         private fun setMaxHeaderSize(server: Server, maxHeaderSize: Int) {

@@ -10,9 +10,6 @@ class DataVariant(
         private val deserializer: WebEntitySerializer,
         private val mediaType: MediaType
 ) : Variant {
-    override val isEmpty: Boolean
-        get() = false
-
     @Suppress("UNCHECKED_CAST")
     override fun <T : Any> convertTo(cls: KClass<T>): T {
         return deserializer.deserialize(data, cls, mediaType) as T

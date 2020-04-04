@@ -1,8 +1,8 @@
 package com.github.niuhf0452.exile.config.source
 
+import com.github.niuhf0452.exile.common.URLHelper
 import com.github.niuhf0452.exile.config.*
 import com.github.niuhf0452.exile.config.internal.ConfigFragmentImpl
-import com.github.niuhf0452.exile.config.internal.Util
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UnstableDefault
@@ -104,7 +104,7 @@ class VaultSource(
                 defaultValues.forEach { value ->
                     values[value.path] = value
                 }
-                uri.rawQuery?.let(Util::parseQueryString)?.forEach { (k, v) ->
+                uri.rawQuery?.let(URLHelper::parseQueryString)?.forEach { (k, v) ->
                     values[k] = ConfigValue(uri, k, v)
                 }
                 val config = ConfigFragmentImpl(values)

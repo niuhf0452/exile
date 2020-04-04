@@ -12,6 +12,7 @@ dependencies {
     api(bom.`kotlin-stdlib-jdk8`)
     api(bom.`kotlin-reflect`)
     api(bom.`slf4j-api`)
+    api(submodule("common"))
     compileOnly(submodule("inject"))
     testImplementation(bom.`log4j-slf4j-impl`)
     testImplementation(bom.`wiremock-jre8`)

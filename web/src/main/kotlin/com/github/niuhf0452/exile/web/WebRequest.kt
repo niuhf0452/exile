@@ -1,7 +1,7 @@
 package com.github.niuhf0452.exile.web
 
+import com.github.niuhf0452.exile.common.URLHelper
 import java.net.URI
-import java.net.URLEncoder
 
 class WebRequest<out E>(
         val uri: URI,
@@ -11,12 +11,37 @@ class WebRequest<out E>(
 ) {
     class Builder<E>(
             private val method: String,
-            private val uri: String
+            _uri: String
     ) {
+        private val uri: String
         private val pathParams = mutableMapOf<String, String>()
         private val queryParams = mutableListOf<Pair<String, String>>()
         private var headers = MultiValueMap(false)
         private var entity: Any? = null
+
+        init {
+            val i = _uri.indexOf('?')
+            if (i < 0) {
+                uri = _uri
+            } else {
+                uri = _uri.substring(0, i)
+                val q = _uri.substring(i + 1)
+                setQueryString(q)
+            }
+        }
+
+        fun setQueryString(value: String) {
+            queryParams.clear()
+            if (value.isNotBlank()) {
+                value.split('&').forEach { kv ->
+                    val arr = kv.split('=', limit = 2)
+                    if (arr.size == 2) {
+                        val (k, v) = arr
+                        addQueryParam(URLHelper.decodeQueryString(k), URLHelper.decodeQueryString(v))
+                    }
+                }
+            }
+        }
 
         fun setPathParam(name: String, value: String): Builder<E> {
             pathParams[name] = value
@@ -25,11 +50,6 @@ class WebRequest<out E>(
 
         fun addQueryParam(name: String, value: String): Builder<E> {
             queryParams.add(name to value)
-            return this
-        }
-
-        fun setHeaders(value: Map<String, String>): Builder<E> {
-            headers.set(value)
             return this
         }
 
@@ -85,20 +105,19 @@ class WebRequest<out E>(
                     value = pathParams[value.substring(1)]
                             ?: throw IllegalArgumentException("Path parameter not set: $value")
                 }
-                encodePath(value)
+                URLHelper.encodePath(value)
             }
             if (queryParams.isNotEmpty()) {
                 sb.append('?')
                 queryParams.forEach { (k, v) ->
-                    sb.append(encodePath(k)).append('=').append(encodePath(v)).append('&')
+                    sb.append(URLHelper.encodeQueryString(k))
+                            .append('=')
+                            .append(URLHelper.encodeQueryString(v))
+                            .append('&')
                 }
                 sb.setLength(sb.length - 1)
             }
             return URI.create(sb.toString())
-        }
-
-        private fun encodePath(s: String): String {
-            return URLEncoder.encode(s, Charsets.UTF_8).replace("\\+", "%20")
         }
     }
 

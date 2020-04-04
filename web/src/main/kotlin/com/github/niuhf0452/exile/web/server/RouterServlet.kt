@@ -53,7 +53,15 @@ class RouterServlet(
         val e = servletRequest.headerNames
         while (e.hasMoreElements()) {
             val name = e.nextElement()
-            headers.set(name, servletRequest.getHeaders(name).toList())
+            val e2 = servletRequest.getHeaders(name)
+            while (e2.hasMoreElements()) {
+                e2.nextElement().split(',').forEach { value ->
+                    val v = value.trim()
+                    if (v.isNotEmpty()) {
+                        headers.add(name, v)
+                    }
+                }
+            }
         }
         return headers
     }

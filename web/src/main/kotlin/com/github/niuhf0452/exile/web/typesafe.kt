@@ -57,3 +57,5 @@ interface TypeSafeClientFactory<A> {
         }
     }
 }
+
+class ClientResponseException(val response: WebResponse<*>, message: String) : RuntimeException(message)

@@ -133,11 +133,20 @@ class RouterTest : FunSpec({
         response.statusCode shouldBe 500
     }
 
+    test("A router should return 500 if handler throws error") {
+        val router = RouterImpl(WebServer.Config())
+        router.addRoute("GET", "/error", ErrorTriggerHandler(AssertionError()))
+        val response = router.onRequest(WebRequest
+                .newBuilder("GET", "http://localhost/error")
+                .build())
+        response.statusCode shouldBe 500
+    }
+
     test("A router should return 500 if ExceptionHandler throws exception") {
         val router = RouterImpl(WebServer.Config())
         router.addRoute("GET", "/error", ErrorTriggerHandler(IllegalStateException()))
         router.setExceptionHandler(object : WebExceptionHandler {
-            override fun handle(exception: Exception): WebResponse<ByteArray> {
+            override fun handle(exception: Throwable): WebResponse<ByteArray> {
                 throw IllegalStateException()
             }
         })
@@ -218,7 +227,7 @@ class RouterTest : FunSpec({
     }
 
     class ErrorTriggerHandler(
-            private val ex: Exception
+            private val ex: Throwable
     ) : WebHandler {
         override suspend fun onRequest(context: RequestContext): WebResponse<Any> {
             throw ex

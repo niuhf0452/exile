@@ -15,19 +15,6 @@ class WebResponse<out E>(
             return this
         }
 
-        fun headers(value: MultiValueMap): Builder<E> {
-            headers.clear()
-            value.forEach { name ->
-                headers.set(name, value.get(name))
-            }
-            return this
-        }
-
-        fun setHeaders(value: Map<String, String>): Builder<E> {
-            headers.set(value)
-            return this
-        }
-
         fun addHeader(name: String, value: String): Builder<E> {
             headers.add(name, value)
             return this

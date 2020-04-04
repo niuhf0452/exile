@@ -1,5 +1,6 @@
 package com.github.niuhf0452.exile.config
 
+import com.github.niuhf0452.exile.common.URLHelper
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.common.ClasspathFileSource
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
@@ -9,7 +10,6 @@ import io.kotlintest.matchers.types.shouldNotBeNull
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.FunSpec
 import java.net.URI
-import java.net.URLEncoder
 import java.util.*
 
 class ConfigSourceLoaderTest : FunSpec() {
@@ -45,7 +45,7 @@ class ConfigSourceLoaderTest : FunSpec() {
                 text = abc
                 value = 123
             """.trimIndent()
-            val uri = URI.create("simple://mem/?content=${URLEncoder.encode(content, Charsets.UTF_8)}")
+            val uri = URI.create("simple://mem/?content=${URLHelper.encodeQueryString(content)}")
             val config = Config.newBuilder().from(uri).build()
             config.getString("text") shouldBe "abc"
             config.getInt("value") shouldBe 123

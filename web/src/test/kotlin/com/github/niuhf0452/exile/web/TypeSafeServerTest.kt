@@ -70,6 +70,15 @@ class TypeSafeServerTest : FunSpec({
                 .build())
                 .message() shouldBe "hello, [1, 2, 3]"
     }
+
+    test("A type safe handler should accept default value") {
+        val router = RouterImpl(WebServer.Config())
+        router.addTypeSafeHandler(Q7::class)
+        router.onRequest(WebRequest.newBuilder("GET", "http://localhost/test")
+                .addHeader("Accept", "text/plain")
+                .build())
+                .message() shouldBe "hello, [1, 2, 3]"
+    }
 }) {
     @WebEndpoint("/test")
     class Q1 {
@@ -119,6 +128,14 @@ class TypeSafeServerTest : FunSpec({
     class Q6 {
         @WebMethod("GET", "")
         fun test(@WebQueryParam("i") i: List<Int>): String {
+            return "hello, $i"
+        }
+    }
+
+    @WebEndpoint("/test")
+    class Q7 {
+        @WebMethod("GET", "")
+        fun test(@WebQueryParam("i") i: List<Int> = listOf(1, 2, 3)): String {
             return "hello, $i"
         }
     }

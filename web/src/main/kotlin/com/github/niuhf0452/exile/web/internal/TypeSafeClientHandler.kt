@@ -1,8 +1,8 @@
 package com.github.niuhf0452.exile.web.internal
 
-import com.github.niuhf0452.exile.reflection.AsyncMethodHandler
-import com.github.niuhf0452.exile.reflection.ProxyFactory
-import com.github.niuhf0452.exile.reflection.internal.JdkProxyFactoryBuilder
+import com.github.niuhf0452.exile.common.AsyncMethodHandler
+import com.github.niuhf0452.exile.common.ProxyFactory
+import com.github.niuhf0452.exile.common.internal.JdkProxyFactoryBuilder
 import com.github.niuhf0452.exile.web.*
 import com.github.niuhf0452.exile.web.serialization.VariableTypeConverters
 import kotlin.reflect.KClass
@@ -12,15 +12,16 @@ import kotlin.reflect.full.findAnnotation
 
 object TypeSafeClientHandler {
     fun <A : Any> getClientFactory(cls: KClass<A>): TypeSafeClientFactory<A> {
+        val basePath = cls.findAnnotation<WebEndpoint>()?.value ?: ""
         val proxyFactory = JdkProxyFactoryBuilder<State>()
                 .addInterface(cls)
                 .filter { it.findAnnotation<WebMethod>() != null }
-                .handle { parseMethod(it) }
+                .handle { parseMethod(it, basePath) }
                 .build()
         return Factory(proxyFactory)
     }
 
-    private fun parseMethod(method: KFunction<*>): MethodHandler {
+    private fun parseMethod(method: KFunction<*>, basePath: String): MethodHandler {
         val a = method.findAnnotation<WebMethod>()!!
         val param = mutableListOf<ParameterBuilder>()
         method.parameters.forEachIndexed { i, p ->
@@ -34,7 +35,7 @@ object TypeSafeClientHandler {
         }
         val returnClass = method.returnType.classifier as? KClass<*>
                 ?: throw IllegalArgumentException("The return type is not supported: $method")
-        return MethodHandler(method, a.method, a.path, param, returnClass)
+        return MethodHandler(method, a.method, Util.joinPath(basePath, a.path), param, returnClass)
     }
 
     private fun parsePathParam(parameter: KParameter, index: Int): ParameterBuilder? {
@@ -116,7 +117,19 @@ object TypeSafeClientHandler {
             @Suppress("UNCHECKED_CAST")
             val request = builder.build() as WebRequest<Any>
             val response = client.send(request)
-            return response.entity?.convertTo(returnClass)
+            if (response.statusCode < 200 || response.statusCode > 299) {
+                throw ClientResponseException(response,
+                        "Response with failure status code: ${response.statusCode}, $method $path")
+            }
+            val entity = response.entity
+            if (entity == null) {
+                if (!function.returnType.isMarkedNullable) {
+                    throw ClientResponseException(response,
+                            "Response with no entity, but expect entity: ${response.statusCode}, $method $path")
+                }
+                return null
+            }
+            return entity.convertTo(returnClass)
         }
     }
 

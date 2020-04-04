@@ -8,10 +8,10 @@ class SafeExceptionHandler(
 ) : WebExceptionHandler {
     private val fallbackHandler = DefaultExceptionHandler()
 
-    override fun handle(exception: Exception): WebResponse<ByteArray> {
+    override fun handle(exception: Throwable): WebResponse<ByteArray> {
         return try {
             handler.handle(exception)
-        } catch (ex: Exception) {
+        } catch (ex: Throwable) {
             fallbackHandler.handle(ex)
         }
     }

@@ -1,11 +1,8 @@
 package com.github.niuhf0452.exile.web.internal
 
+import com.github.niuhf0452.exile.common.URLHelper
 import com.github.niuhf0452.exile.web.*
-import com.github.niuhf0452.exile.web.Responses.NotAcceptable
-import com.github.niuhf0452.exile.web.Responses.NotFound
-import com.github.niuhf0452.exile.web.Responses.UnsupportedMediaType
 import com.github.niuhf0452.exile.web.serialization.EntitySerializers
-import java.net.URLDecoder
 import java.util.concurrent.ConcurrentHashMap
 
 class RouterImpl(
@@ -29,29 +26,9 @@ class RouterImpl(
     }
 
     override suspend fun onRequest(request: WebRequest<ByteArray>): WebResponse<ByteArray> {
-        val method = request.method
-        val path = segmentPath(request.uri.path)
-        val pathVariables = mutableMapOf<String, String>()
-        val route = matchRoute(method, path, pathVariables)
-                ?: return NotFound
-        val contentType = request.headers.get("Content-Type").firstOrNull()
-                ?.let { MediaType.parse(it) }
-                ?: MediaType.APPLICATION_JSON
-        val acceptTypes = request.headers.get("Accept").map { MediaType.parse(it) }
-                .let { if (it.isEmpty()) listOf(MediaType.ALL) else it }
-        val deserializer = EntitySerializers.getSerializer(contentType)
-                ?: return UnsupportedMediaType
-        val (defaultType, defaultSerializer) = EntitySerializers
-                .acceptSerializer(acceptTypes)
-                ?: return NotAcceptable
         val response = try {
-            val request0 = makeRequest(request, deserializer, contentType)
-            val context = ContextImpl(route.path, pathVariables, request0)
-            val response = route.handler.onRequest(context)
-            makeResponse(response, defaultType, defaultSerializer, acceptTypes)
-        } catch (ex: DirectResponseException) {
-            ex.response
-        } catch (ex: Exception) {
+            handleRequest(request)
+        } catch (ex: Throwable) {
             exceptionHandler.handle(ex)
         }
         // make sure connection header is always set correctly.
@@ -68,10 +45,31 @@ class RouterImpl(
         }
     }
 
+    private suspend fun handleRequest(request: WebRequest<ByteArray>): WebResponse<ByteArray> {
+        val method = request.method
+        val path = segmentPath(request.uri.path)
+        val pathVariables = mutableMapOf<String, String>()
+        val route = matchRoute(method, path, pathVariables)
+                ?: throw FailureResponseException(404, "The method and path is not handled: $method $path")
+        val contentType = request.headers.get("Content-Type").firstOrNull()
+                ?.let { MediaType.parse(it) }
+                ?: MediaType.APPLICATION_JSON
+        val acceptTypes = request.headers.get("Accept").map { MediaType.parse(it) }
+                .let { if (it.isEmpty()) listOf(MediaType.ALL) else it }
+        val deserializer = EntitySerializers.getSerializer(contentType)
+                ?: throw FailureResponseException(415, "The media type is not supported: $contentType")
+        val (defaultType, defaultSerializer) = EntitySerializers.acceptSerializer(acceptTypes)
+                ?: throw FailureResponseException(406, "The media type is not supported: $acceptTypes")
+        val request0 = makeRequest(request, deserializer, contentType)
+        val context = ContextImpl(route.path, pathVariables, request0)
+        val response = route.handler.onRequest(context)
+        return makeResponse(response, defaultType, defaultSerializer, acceptTypes)
+    }
+
     private fun segmentPath(path: String): List<String> {
         return path.split('/')
                 .drop(1)
-                .map { URLDecoder.decode(it, Charsets.UTF_8) }
+                .map { URLHelper.decodePath(it) }
     }
 
     private fun matchRoute(method: String, path: List<String>, variables: MutableMap<String, String>): Route? {
@@ -105,10 +103,10 @@ class RouterImpl(
                 ?: defaultType
         if (contentType !== defaultType) {
             if (!isAcceptable(acceptTypes, contentType)) {
-                throw DirectResponseException(NotAcceptable)
+                throw FailureResponseException(406, "The media type is not supported: $contentType")
             }
             serializer = EntitySerializers.getSerializer(contentType)
-                    ?: throw DirectResponseException(NotAcceptable)
+                    ?: throw FailureResponseException(406, "The media type is not supported: $contentType")
         }
         return when (response.entity) {
             null, is ByteArray -> {
@@ -202,8 +200,8 @@ class RouterImpl(
             if (queryString != null && queryString.isNotEmpty()) {
                 queryString.split('&').forEach { kv ->
                     val (k, v) = kv.split('=', limit = 2)
-                    val k0 = URLDecoder.decode(k, Charsets.UTF_8)
-                    val v0 = URLDecoder.decode(v, Charsets.UTF_8)
+                    val k0 = URLHelper.decodeQueryString(k)
+                    val v0 = URLHelper.decodeQueryString(v)
                     queryParams.add(k0, v0)
                 }
             }

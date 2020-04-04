@@ -11,8 +11,7 @@ import io.kotlintest.specs.FunSpec
 import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.Serializable
 import org.slf4j.LoggerFactory
-
-class JdkHttpClientTest : ClientAndServerTest(JdkHttpClient.Builder(), JettyServer.Factory())
+import java.time.Duration
 
 class NettyServerTest : ClientAndServerTest(JdkHttpClient.Builder(), NettyServer.Factory())
 
@@ -22,13 +21,17 @@ abstract class ClientAndServerTest(
         clientBuilder: WebClient.Builder,
         serverFactory: WebServer.Factory
 ) : FunSpec() {
-    private val client = clientBuilder.build()
+    private val client = clientBuilder
+            .connectTimeout(Duration.ofSeconds(1))
+            .requestTimeout(Duration.ofSeconds(1))
+            .maxKeepAliveConnectionSize(10)
+            .build()
     private val server = serverFactory.startServer(WebServer.Config(), Dispatchers.Default)
 
     init {
         test("A client should send request") {
             val response = client.send(WebRequest
-                    .newBuilder("GET","http://localhost:${server.port}/test1")
+                    .newBuilder("GET", "http://localhost:${server.port}/test1")
                     .build())
             response.statusCode shouldBe 204
             response.entity.shouldBeNull()
@@ -42,21 +45,65 @@ abstract class ClientAndServerTest(
             response.entity.shouldNotBeNull()
             response.entity?.convertTo(Test::class)
         }
+
+        test("A client should send entity") {
+            val response = client.send(WebRequest
+                    .newBuilder("POST", "http://localhost:${server.port}/test3")
+                    .addHeader("Content-Type", "text/plain")
+                    .entity("foo")
+                    .build())
+            response.statusCode shouldBe 200
+            response.entity.shouldNotBeNull()
+            response.entity?.convertTo(String::class) shouldBe "foo"
+        }
+
+        test("A server should accept header with multiple values") {
+            val response = client.send(WebRequest
+                    .newBuilder("GET", "http://localhost:${server.port}/test2")
+                    .addHeader("Accept", "text/plain, application/json")
+                    .build())
+            response.statusCode shouldBe 200
+            response.entity.shouldNotBeNull()
+            response.entity?.convertTo(Test::class)
+        }
+
+        test("A server should return 404 if request not handled") {
+            val response = client.send(WebRequest
+                    .newBuilder("GET", "http://localhost:${server.port}/404")
+                    .build())
+            response.statusCode shouldBe 404
+        }
     }
 
     override fun beforeSpec(spec: Spec) {
         val log = LoggerFactory.getLogger(this::class.java)
         log.info("Server is listening on port ${server.port}")
+        val router = server.router
 
-        server.addRoute("GET", "/test1", object : WebHandler {
+        router.addRoute("GET", "/test1", object : WebHandler {
             override suspend fun onRequest(context: RequestContext): WebResponse<Any> {
                 return WebResponse.newBuilder().statusCode(204).build()
             }
         })
 
-        server.addRoute("GET", "/test2", object : WebHandler {
+        router.addRoute("GET", "/test2", object : WebHandler {
             override suspend fun onRequest(context: RequestContext): WebResponse<Any> {
                 return WebResponse.newBuilder().statusCode(200).entity(Test(123)).build()
+            }
+        })
+
+        router.addRoute("POST", "/test3", object : WebHandler {
+            override suspend fun onRequest(context: RequestContext): WebResponse<Any> {
+                val contentType = context.request.headers.get("Content-Type").firstOrNull()
+                contentType shouldBe "text/plain"
+                val entity = context.request.entity
+                entity.shouldNotBeNull()
+                val text = entity.convertTo(String::class)
+                return WebResponse.newBuilder()
+                        .statusCode(200)
+                        .addHeader("Content-Type", "text/plain")
+                        .entity(text)
+                        .build()
             }
         })
     }

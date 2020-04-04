@@ -1,12 +1,12 @@
 package com.github.niuhf0452.exile.config.source
 
+import com.github.niuhf0452.exile.common.Bytes
+import com.github.niuhf0452.exile.common.URLHelper
 import com.github.niuhf0452.exile.config.Config
 import com.github.niuhf0452.exile.config.ConfigSourceLoader
 import com.github.niuhf0452.exile.config.ConfigValue
-import com.github.niuhf0452.exile.config.internal.Util
 import com.github.niuhf0452.exile.config.internal.Util.configPathRegex
 import com.github.niuhf0452.exile.config.internal.Util.log
-import com.github.niuhf0452.exile.config.internal.Util.toHexString
 import java.io.ByteArrayOutputStream
 import java.net.URI
 import java.security.MessageDigest
@@ -36,7 +36,7 @@ class PropertiesSource(
             }
         }
         val md = MessageDigest.getInstance("SHA1")
-        hash = md.digest(out.toByteArray()).toHexString()
+        hash = md.digest(out.toByteArray()).let(Bytes::toHex)
         out.close()
     }
 
@@ -54,7 +54,7 @@ class PropertiesSource(
         override fun load(uri: URI): Config.Source? {
             if (uri.scheme == location.scheme) {
                 val map = uri.rawQuery
-                        ?.let(Util::parseQueryString)
+                        ?.let(URLHelper::parseQueryString)
                         ?: emptyMap()
                 val props = Properties()
                 props.putAll(map)

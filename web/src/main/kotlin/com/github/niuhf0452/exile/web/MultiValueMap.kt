@@ -14,6 +14,9 @@ class MultiValueMap(caseSensitivity: Boolean) : Iterable<String> {
     val isEmpty: Boolean
         get() = headers.isEmpty()
 
+    val size: Int
+        get() = headers.size
+
     override fun iterator(): Iterator<String> {
         return headers.keys.iterator()
     }
@@ -21,15 +24,6 @@ class MultiValueMap(caseSensitivity: Boolean) : Iterable<String> {
     fun get(name: String): Iterable<String> {
         return headers[name]
                 ?: emptyList()
-    }
-
-    fun set(value: Map<String, String>) {
-        headers.clear()
-        value.forEach { (k, v) ->
-            val list = ArrayList<String>(1)
-            list.add(v)
-            headers[k] = list
-        }
     }
 
     fun add(name: String, value: String) {

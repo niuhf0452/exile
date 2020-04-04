@@ -1,12 +1,12 @@
 package com.github.niuhf0452.exile.config.internal
 
+import com.github.niuhf0452.exile.common.URLHelper
 import com.github.niuhf0452.exile.config.Config
 import com.github.niuhf0452.exile.config.ConfigFragment
 import com.github.niuhf0452.exile.config.ConfigValue
 import com.github.niuhf0452.exile.config.internal.Util.log
 import java.io.File
 import java.net.URI
-import java.net.URLEncoder
 
 class AutoConfigurator {
     private val builder = ConfigImpl.Builder()
@@ -90,7 +90,7 @@ class AutoConfigurator {
     private fun makeSourceUri(config: ConfigFragment): URI {
         val fragment = config.getFragment("query", keepPrefix = false)
         val qs = fragment.joinToString("&") { (_, k, v) ->
-            "${URLEncoder.encode(k, Charsets.UTF_8)}=${URLEncoder.encode(v, Charsets.UTF_8)}"
+            "${URLHelper.encodeQueryString(k)}=${URLHelper.encodeQueryString(v)}"
         }
         return URI.create(config.getString("uri") + "?" + qs)
     }

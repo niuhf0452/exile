@@ -8,7 +8,6 @@ fun defineModule(path: String, name: String = path.replace('/', '-')) {
 defineModule("inject")
 defineModule("config")
 defineModule("web")
-defineModule("serialization")
-defineModule("reflection")
+defineModule("common")
 defineModule("core")
 defineModule("examples/inject")

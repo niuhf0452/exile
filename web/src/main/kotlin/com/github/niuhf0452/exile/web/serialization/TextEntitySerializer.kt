@@ -1,9 +1,8 @@
 package com.github.niuhf0452.exile.web.serialization
 
+import com.github.niuhf0452.exile.web.FailureResponseException
 import com.github.niuhf0452.exile.web.MediaType
-import com.github.niuhf0452.exile.web.Responses
 import com.github.niuhf0452.exile.web.WebEntitySerializer
-import com.github.niuhf0452.exile.web.internal.DirectResponseException
 import kotlinx.serialization.modules.SerialModule
 import kotlin.reflect.KClass
 
@@ -12,7 +11,7 @@ class TextEntitySerializer : WebEntitySerializer {
 
     override fun serialize(data: Any, mediaType: MediaType): ByteArray {
         if (data !is String) {
-            throw DirectResponseException(Responses.NotAcceptable)
+            throw FailureResponseException(406, "The media type is not supported: $mediaType")
         }
         return data.toByteArray(mediaType.charset)
     }

@@ -22,29 +22,29 @@ import java.net.URI
 import kotlin.coroutines.CoroutineContext
 
 class NettyServer(
-        override val port: Int,
         private val bossLoop: NioEventLoopGroup,
         private val workerLoop: NioEventLoopGroup,
-        router: Router
-) : WebServer, Router by router {
+        override val port: Int,
+        override val router: Router
+) : WebServer {
     override fun close() {
         bossLoop.shutdownGracefully()
         workerLoop.shutdownGracefully()
     }
 
     class Factory : WebServer.Factory {
-        override fun startServer(config: WebServer.Config, coroutineContext: CoroutineContext): WebServer {
-            val router = RouterImpl(config)
+        override fun startServer(config: WebServer.Config, coroutineContext: CoroutineContext, router: Router?): WebServer {
+            val router0 = router ?: RouterImpl(config)
             val boss = NioEventLoopGroup()
             val workerCount = Runtime.getRuntime().availableProcessors()
             val worker = NioEventLoopGroup(workerCount, DefaultThreadFactory("netty-worker", Thread.NORM_PRIORITY))
             val bootstrap = ServerBootstrap()
             val future = bootstrap.group(boss, worker)
                     .channel(NioServerSocketChannel::class.java)
-                    .childHandler(HttpServerInitializer(config, router, coroutineContext))
+                    .childHandler(HttpServerInitializer(config, router0, coroutineContext))
                     .bind(config.port)
             val port = (future.sync().channel().localAddress() as InetSocketAddress).port
-            return NettyServer(port, boss, worker, router)
+            return NettyServer(boss, worker, port, router0)
         }
     }
 
@@ -101,8 +101,13 @@ class NettyServer(
 
         private fun readHeaders(nettyHeaders: HttpHeaders): MultiValueMap {
             val headers = MultiValueMap(false)
-            nettyHeaders.names().forEach { name ->
-                headers.set(name, nettyHeaders.getAll(name))
+            nettyHeaders.iteratorAsString().forEach { (k, v) ->
+                v.split(',').forEach { value ->
+                    val v0 = value.trim()
+                    if (v0.isNotEmpty()) {
+                        headers.add(k, v0)
+                    }
+                }
             }
             return headers
         }

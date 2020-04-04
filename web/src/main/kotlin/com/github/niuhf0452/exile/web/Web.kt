@@ -7,8 +7,10 @@ import javax.net.ssl.SSLContext
 import kotlin.coroutines.CoroutineContext
 import kotlin.reflect.KClass
 
-interface WebServer : AutoCloseable, Router {
+interface WebServer : AutoCloseable {
     val port: Int
+
+    val router: Router
 
     @Serializable
     data class Config(
@@ -23,7 +25,7 @@ interface WebServer : AutoCloseable, Router {
     )
 
     interface Factory {
-        fun startServer(config: Config, coroutineContext: CoroutineContext): WebServer
+        fun startServer(config: Config, coroutineContext: CoroutineContext, router: Router? = null): WebServer
     }
 }
 
@@ -42,7 +44,7 @@ interface WebHandler {
 }
 
 interface WebExceptionHandler {
-    fun handle(exception: Exception): WebResponse<ByteArray>
+    fun handle(exception: Throwable): WebResponse<ByteArray>
 }
 
 interface RequestContext {
@@ -53,8 +55,6 @@ interface RequestContext {
 }
 
 interface Variant {
-    val isEmpty: Boolean
-
     fun <T : Any> convertTo(cls: KClass<T>): T
 }
 
