@@ -4,12 +4,14 @@ import com.github.niuhf0452.exile.common.URLHelper
 import com.github.niuhf0452.exile.web.*
 import com.github.niuhf0452.exile.web.serialization.EntitySerializers
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.reflect.KClass
 
 class RouterImpl(
         private val config: WebServer.Config
 ) : Router {
     private val routes = ConcurrentHashMap<RouteKey, Route>()
     private var exceptionHandler: WebExceptionHandler = DefaultExceptionHandler()
+    private val interceptors = InterceptorList(emptyList())
 
     override fun addRoute(method: String, path: String, handler: WebHandler) {
         val p = if (path.startsWith('/')) path else "/$path"
@@ -27,7 +29,9 @@ class RouterImpl(
 
     override suspend fun onRequest(request: WebRequest<ByteArray>): WebResponse<ByteArray> {
         val response = try {
-            handleRequest(request)
+            interceptors.handleRequest(request) {
+                handleRequest(it)
+            }
         } catch (ex: Throwable) {
             exceptionHandler.handle(ex)
         }
@@ -43,6 +47,14 @@ class RouterImpl(
             is DefaultExceptionHandler -> handler
             else -> SafeExceptionHandler(handler)
         }
+    }
+
+    override fun addInterceptor(interceptor: WebInterceptor) {
+        interceptors.add(interceptor)
+    }
+
+    override fun removeInterceptor(cls: KClass<*>) {
+        interceptors.remove(cls)
     }
 
     private suspend fun handleRequest(request: WebRequest<ByteArray>): WebResponse<ByteArray> {

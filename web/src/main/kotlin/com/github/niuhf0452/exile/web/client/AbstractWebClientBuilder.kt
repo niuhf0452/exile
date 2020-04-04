@@ -1,6 +1,8 @@
 package com.github.niuhf0452.exile.web.client
 
 import com.github.niuhf0452.exile.web.WebClient
+import com.github.niuhf0452.exile.web.WebInterceptor
+import com.github.niuhf0452.exile.web.internal.InterceptorList
 import java.time.Duration
 import javax.net.ssl.SSLContext
 
@@ -9,11 +11,13 @@ abstract class AbstractWebClientBuilder : WebClient.Builder {
     private var connectTimeout = Duration.ofSeconds(5)
     private var requestTimeout = Duration.ofSeconds(15)
     private var sslContext: SSLContext? = null
+    private val interceptors = mutableListOf<WebInterceptor>()
 
     protected abstract fun createClient(maxKeepAliveConnectionSize: Int,
                                         connectTimeout: Duration,
                                         requestTimeout: Duration,
-                                        sslContext: SSLContext?): WebClient
+                                        sslContext: SSLContext?,
+                                        interceptors: InterceptorList): WebClient
 
     override fun maxKeepAliveConnectionSize(value: Int): WebClient.Builder {
         maxKeepAliveConnectionSize = value
@@ -35,7 +39,13 @@ abstract class AbstractWebClientBuilder : WebClient.Builder {
         return this
     }
 
+    override fun addInterceptor(interceptor: WebInterceptor): WebClient.Builder {
+        interceptors.add(interceptor)
+        return this
+    }
+
     override fun build(): WebClient {
-        return createClient(maxKeepAliveConnectionSize, connectTimeout, requestTimeout, sslContext)
+        return createClient(maxKeepAliveConnectionSize, connectTimeout, requestTimeout, sslContext,
+                InterceptorList(interceptors))
     }
 }

@@ -4,6 +4,7 @@ import com.github.niuhf0452.exile.web.MultiValueMap
 import com.github.niuhf0452.exile.web.WebClient
 import com.github.niuhf0452.exile.web.WebRequest
 import com.github.niuhf0452.exile.web.WebResponse
+import com.github.niuhf0452.exile.web.internal.InterceptorList
 import kotlinx.coroutines.future.await
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
@@ -13,7 +14,8 @@ import javax.net.ssl.SSLContext
 
 class JdkHttpClient(
         private val client: HttpClient,
-        private val requestTimeout: Duration
+        private val requestTimeout: Duration,
+        override val interceptors: InterceptorList
 ) : AbstractWebClient() {
     override suspend fun backendSend(request: WebRequest<ByteArray>): WebResponse<ByteArray> {
         val builder = HttpRequest.newBuilder()
@@ -47,7 +49,8 @@ class JdkHttpClient(
         override fun createClient(maxKeepAliveConnectionSize: Int,
                                   connectTimeout: Duration,
                                   requestTimeout: Duration,
-                                  sslContext: SSLContext?): WebClient {
+                                  sslContext: SSLContext?,
+                                  interceptors: InterceptorList): WebClient {
             val clientBuilder = HttpClient.newBuilder()
                     .version(HttpClient.Version.HTTP_2)
                     .connectTimeout(connectTimeout)
@@ -55,7 +58,7 @@ class JdkHttpClient(
             if (sslContext != null) {
                 clientBuilder.sslContext(sslContext)
             }
-            return JdkHttpClient(clientBuilder.build(), requestTimeout)
+            return JdkHttpClient(clientBuilder.build(), requestTimeout, interceptors)
         }
     }
 }

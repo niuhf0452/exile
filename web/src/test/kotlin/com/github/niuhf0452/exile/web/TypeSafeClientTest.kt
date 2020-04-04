@@ -188,6 +188,10 @@ class TypeSafeClientTest : FunSpec() {
         override suspend fun send(request: WebRequest<Any>): WebResponse<Variant> {
             return fn(request)
         }
+
+        override fun addInterceptor(interceptor: WebInterceptor) = Unit
+
+        override fun removeInterceptor(cls: KClass<*>) = Unit
     }
 
     class MockVariant(

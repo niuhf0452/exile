@@ -1,11 +1,13 @@
 package com.github.niuhf0452.exile.web
 
 import com.github.niuhf0452.exile.web.internal.RouterImpl
+import io.kotlintest.matchers.boolean.shouldBeTrue
 import io.kotlintest.matchers.types.shouldNotBeNull
 import io.kotlintest.shouldBe
 import io.kotlintest.shouldThrow
 import io.kotlintest.specs.FunSpec
 import kotlinx.serialization.Serializable
+import java.util.concurrent.atomic.AtomicBoolean
 
 class RouterTest : FunSpec({
     fun WebResponse<ByteArray>.message(): String {
@@ -179,13 +181,32 @@ class RouterTest : FunSpec({
     }
 
     test("A router should return Content-Type") {
-        val router = RouterImpl(WebServer.Config(serverHeader = "test"))
+        val router = RouterImpl(WebServer.Config())
         router.addRoute("GET", "/test", ObjectHandler("abc"))
         val response = router.onRequest(WebRequest
                 .newBuilder("GET", "http://localhost/test")
                 .build())
         response.statusCode shouldBe 200
         response.headers.get(CommonHeaders.ContentType).firstOrNull() shouldBe "application/json"
+    }
+
+    test("A router should call interceptor") {
+        val called = AtomicBoolean(false)
+        val router = RouterImpl(WebServer.Config())
+        router.addInterceptor(object : WebInterceptor {
+            override val order: Int
+                get() = 0
+
+            override suspend fun onRequest(request: WebRequest<ByteArray>, handler: WebInterceptor.RequestHandler): WebResponse<ByteArray> {
+                called.set(true)
+                return handler.onRequest(request)
+            }
+        })
+        val response = router.onRequest(WebRequest
+                .newBuilder("GET", "http://localhost/test")
+                .build())
+        response.statusCode shouldBe 404
+        called.get().shouldBeTrue()
     }
 }) {
     class TextHandler(

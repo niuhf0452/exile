@@ -4,6 +4,7 @@ import com.github.niuhf0452.exile.web.client.JdkHttpClient
 import com.github.niuhf0452.exile.web.server.JettyServer
 import com.github.niuhf0452.exile.web.server.NettyServer
 import io.kotlintest.Spec
+import io.kotlintest.matchers.boolean.shouldBeTrue
 import io.kotlintest.matchers.types.shouldBeNull
 import io.kotlintest.matchers.types.shouldNotBeNull
 import io.kotlintest.shouldBe
@@ -12,6 +13,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.Serializable
 import org.slf4j.LoggerFactory
 import java.time.Duration
+import java.util.concurrent.atomic.AtomicBoolean
 
 class NettyServerTest : ClientAndServerTest(JdkHttpClient.Builder(), NettyServer.Factory())
 
@@ -72,6 +74,26 @@ abstract class ClientAndServerTest(
                     .newBuilder("GET", "http://localhost:${server.port}/404")
                     .build())
             response.statusCode shouldBe 404
+        }
+
+        test("A client should call interceptor") {
+            val called = AtomicBoolean(false)
+            val client0 = clientBuilder
+                    .addInterceptor(object : WebInterceptor {
+                        override val order: Int
+                            get() = 0
+
+                        override suspend fun onRequest(request: WebRequest<ByteArray>, handler: WebInterceptor.RequestHandler): WebResponse<ByteArray> {
+                            called.set(true)
+                            return handler.onRequest(request)
+                        }
+                    })
+                    .build()
+            val response = client0.send(WebRequest
+                    .newBuilder("GET", "http://localhost:${server.port}/404")
+                    .build())
+            response.statusCode shouldBe 404
+            called.get().shouldBeTrue()
         }
     }
 

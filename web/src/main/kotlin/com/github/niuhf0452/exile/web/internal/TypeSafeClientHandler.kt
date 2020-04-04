@@ -129,7 +129,11 @@ object TypeSafeClientHandler {
                 }
                 return null
             }
-            return entity.convertTo(returnClass)
+            try {
+                return entity.convertTo(returnClass)
+            } catch (ex: Exception) {
+                throw ClientResponseException(response, "Fail to convert entity: $returnClass", ex)
+            }
         }
     }
 

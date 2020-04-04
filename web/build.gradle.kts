@@ -20,8 +20,6 @@ dependencies {
     api(bom.`serial-yaml`)
     api(bom.`serial-bson`)
     api(submodule("common"))
-    compileOnly(submodule("inject"))
-    compileOnly(submodule("config"))
     compileOnly(bom.`servlet-api`)
     compileOnly(bom.`jetty-server`)
     compileOnly(bom.`jetty-servlet`)
