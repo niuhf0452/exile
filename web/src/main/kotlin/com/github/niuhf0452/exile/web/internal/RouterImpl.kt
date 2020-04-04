@@ -3,12 +3,14 @@ package com.github.niuhf0452.exile.web.internal
 import com.github.niuhf0452.exile.common.URLHelper
 import com.github.niuhf0452.exile.web.*
 import com.github.niuhf0452.exile.web.serialization.EntitySerializers
+import org.slf4j.LoggerFactory
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass
 
 class RouterImpl(
         private val config: WebServer.Config
 ) : Router {
+    private val log = LoggerFactory.getLogger(Router::class.java)
     private val routes = ConcurrentHashMap<RouteKey, Route>()
     private var exceptionHandler: WebExceptionHandler = DefaultExceptionHandler()
     private val interceptors = InterceptorList(emptyList())
@@ -28,18 +30,23 @@ class RouterImpl(
     }
 
     override suspend fun onRequest(request: WebRequest<ByteArray>): WebResponse<ByteArray> {
-        val response = try {
-            interceptors.handleRequest(request) {
-                handleRequest(it)
+        try {
+            return interceptors.handleRequest(request) { req ->
+                val response = try {
+                    handleRequest(req)
+                } catch (ex: Throwable) {
+                    exceptionHandler.handle(ex)
+                }
+                // make sure connection header is always set correctly.
+                addConnectionHeader(response, request)
+                addContentLengthHeader(response)
+                addServerHeader(response)
+                response
             }
         } catch (ex: Throwable) {
-            exceptionHandler.handle(ex)
+            log.error("Critical error", ex)
         }
-        // make sure connection header is always set correctly.
-        addConnectionHeader(response, request)
-        addContentLengthHeader(response)
-        addServerHeader(response)
-        return response
+        return WebResponse.newBuilder().statusCode(500).build()
     }
 
     override fun setExceptionHandler(handler: WebExceptionHandler) {
@@ -156,9 +163,9 @@ class RouterImpl(
 
     private fun addContentLengthHeader(response: WebResponse<ByteArray>) {
         if (response.entity == null) {
-            response.headers.remove("Content-Length")
+            response.headers.remove(CommonHeaders.ContentLength)
         } else {
-            response.headers.set("Content-Length", listOf(response.entity.size.toString()))
+            response.headers.set(CommonHeaders.ContentLength, listOf(response.entity.size.toString()))
         }
     }
 

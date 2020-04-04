@@ -28,20 +28,27 @@ abstract class AbstractWebClient : WebClient {
 
     private fun makeRequest(request: WebRequest<Any>): WebRequest<ByteArray> {
         if (request.entity == null) {
+            if (request.headers.get(CommonHeaders.ContentLength).firstOrNull() != null
+                    || request.headers.get(CommonHeaders.ContentType).firstOrNull() != null) {
+                val headers = MultiValueMap(request.headers, false)
+                headers.remove(CommonHeaders.ContentType)
+                headers.remove(CommonHeaders.ContentLength)
+                return WebRequest(request.uri, request.method, headers, null)
+            }
             @Suppress("UNCHECKED_CAST")
             return request as WebRequest<ByteArray>
         }
-        var headers = request.headers
+        val headers = MultiValueMap(request.headers, false)
         var mediaType = headers.get(CommonHeaders.ContentType).firstOrNull()
                 ?.let { MediaType.parse(it) }
         if (mediaType == null) {
-            headers = MultiValueMap(headers, false)
-            headers.add(CommonHeaders.ContentType, "application/json")
             mediaType = MediaType.APPLICATION_JSON
+            headers.add(CommonHeaders.ContentType, MediaType.APPLICATION_JSON.text)
         }
         val serializer = EntitySerializers.getSerializer(mediaType)
                 ?: throw IllegalArgumentException("The request content type is not supported: $mediaType")
         val data = serializer.serialize(request.entity, mediaType)
+        headers.add(CommonHeaders.ContentLength, data.size.toString())
         return WebRequest(request.uri, request.method, headers, data)
     }
 

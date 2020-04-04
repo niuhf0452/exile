@@ -27,4 +27,5 @@ dependencies {
     testImplementation(bom.`servlet-api`)
     testImplementation(bom.`jetty-server`)
     testImplementation(bom.`jetty-servlet`)
+    testImplementation(bom.`log4j-test`)
 }

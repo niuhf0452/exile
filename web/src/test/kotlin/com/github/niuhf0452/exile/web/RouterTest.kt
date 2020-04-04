@@ -165,7 +165,7 @@ class RouterTest : FunSpec({
                 .newBuilder("GET", "http://localhost/test")
                 .build())
         response.statusCode shouldBe 200
-        val value = response.headers.get("Content-Length").firstOrNull()
+        val value = response.headers.get(CommonHeaders.ContentLength).firstOrNull()
         value.shouldNotBeNull()
         value.toInt() shouldBe 3
     }
