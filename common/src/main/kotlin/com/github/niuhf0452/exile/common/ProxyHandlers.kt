@@ -1,5 +1,6 @@
 package com.github.niuhf0452.exile.common
 
+@PublicApi
 object ProxyHandlers {
     fun returnValue(value: Any?): ProxyMethodHandler<Any?> {
         return object : ProxyMethodHandler<Any?> {

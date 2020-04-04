@@ -2,6 +2,7 @@ package com.github.niuhf0452.exile.common
 
 import kotlinx.serialization.*
 
+@PublicApi
 @Serializable(with = DataSize.Serializer::class)
 class DataSize(val amount: Long, val unit: Unit) : Comparable<DataSize> {
     private val bytes = Unit.BYTE.convertFrom(amount, unit)

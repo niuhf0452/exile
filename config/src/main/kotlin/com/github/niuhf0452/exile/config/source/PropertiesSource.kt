@@ -1,6 +1,7 @@
 package com.github.niuhf0452.exile.config.source
 
 import com.github.niuhf0452.exile.common.Bytes
+import com.github.niuhf0452.exile.common.PublicApi
 import com.github.niuhf0452.exile.common.URLHelper
 import com.github.niuhf0452.exile.config.Config
 import com.github.niuhf0452.exile.config.ConfigSourceLoader
@@ -12,6 +13,7 @@ import java.net.URI
 import java.security.MessageDigest
 import java.util.*
 
+@PublicApi
 class PropertiesSource(
         private val properties: Properties
 ) : Config.Source {

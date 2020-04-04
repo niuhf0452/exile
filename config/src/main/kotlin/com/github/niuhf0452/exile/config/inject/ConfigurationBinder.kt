@@ -1,5 +1,6 @@
 package com.github.niuhf0452.exile.config.inject
 
+import com.github.niuhf0452.exile.common.IntegrationApi
 import com.github.niuhf0452.exile.config.Config
 import com.github.niuhf0452.exile.config.ConfigMapper
 import com.github.niuhf0452.exile.config.Configuration
@@ -14,6 +15,7 @@ import kotlin.reflect.full.findAnnotation
  * This is a Injector Binder for ConfigMapper.Mapping.
  * Don't reference to this class directly, because we don't want hard dependency of inject library.
  */
+@IntegrationApi
 class ConfigurationBinder(
         private val mapper: ConfigMapper
 ) : Injector.Binder {

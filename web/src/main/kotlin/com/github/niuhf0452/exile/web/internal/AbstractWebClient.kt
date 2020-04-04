@@ -1,8 +1,6 @@
-package com.github.niuhf0452.exile.web.client
+package com.github.niuhf0452.exile.web.internal
 
 import com.github.niuhf0452.exile.web.*
-import com.github.niuhf0452.exile.web.internal.DataVariant
-import com.github.niuhf0452.exile.web.internal.InterceptorList
 import com.github.niuhf0452.exile.web.serialization.EntitySerializers
 import kotlin.reflect.KClass
 
@@ -27,29 +25,29 @@ abstract class AbstractWebClient : WebClient {
     }
 
     private fun makeRequest(request: WebRequest<Any>): WebRequest<ByteArray> {
+        val headers = MultiValueMap(request.headers, false)
+        var entity: ByteArray? = null
         if (request.entity == null) {
-            if (request.headers.get(CommonHeaders.ContentLength).firstOrNull() != null
-                    || request.headers.get(CommonHeaders.ContentType).firstOrNull() != null) {
-                val headers = MultiValueMap(request.headers, false)
+            if (headers.get(CommonHeaders.ContentLength).firstOrNull() != null
+                    || headers.get(CommonHeaders.ContentType).firstOrNull() != null) {
                 headers.remove(CommonHeaders.ContentType)
                 headers.remove(CommonHeaders.ContentLength)
-                return WebRequest(request.uri, request.method, headers, null)
             }
-            @Suppress("UNCHECKED_CAST")
-            return request as WebRequest<ByteArray>
+        } else {
+            var mediaType = headers.get(CommonHeaders.ContentType).firstOrNull()
+                    ?.let { MediaType.parse(it) }
+            if (mediaType == null) {
+                mediaType = MediaType.APPLICATION_JSON
+                headers.add(CommonHeaders.ContentType, MediaType.APPLICATION_JSON.text)
+            }
+            val serializer = EntitySerializers.getSerializer(mediaType)
+                    ?: throw IllegalArgumentException("The request content type is not supported: $mediaType")
+            entity = serializer.serialize(request.entity, mediaType)
+            headers.add(CommonHeaders.ContentLength, entity.size.toString())
         }
-        val headers = MultiValueMap(request.headers, false)
-        var mediaType = headers.get(CommonHeaders.ContentType).firstOrNull()
-                ?.let { MediaType.parse(it) }
-        if (mediaType == null) {
-            mediaType = MediaType.APPLICATION_JSON
-            headers.add(CommonHeaders.ContentType, MediaType.APPLICATION_JSON.text)
-        }
-        val serializer = EntitySerializers.getSerializer(mediaType)
-                ?: throw IllegalArgumentException("The request content type is not supported: $mediaType")
-        val data = serializer.serialize(request.entity, mediaType)
-        headers.add(CommonHeaders.ContentLength, data.size.toString())
-        return WebRequest(request.uri, request.method, headers, data)
+        // always create a new instance, because interceptor may change it,
+        // but we don't want to reflect to the input request.
+        return WebRequest(request.uri, request.method, headers, entity)
     }
 
     private fun makeResponse(response: WebResponse<ByteArray>): WebResponse<Variant> {

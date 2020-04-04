@@ -1,5 +1,6 @@
 package com.github.niuhf0452.exile.web.server
 
+import com.github.niuhf0452.exile.common.PublicApi
 import com.github.niuhf0452.exile.web.*
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -18,6 +19,7 @@ import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 import kotlin.coroutines.CoroutineContext
 
+@PublicApi
 class RouterServlet(
         private val router: Router,
         private val context: CoroutineContext

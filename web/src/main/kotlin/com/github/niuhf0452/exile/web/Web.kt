@@ -1,5 +1,7 @@
 package com.github.niuhf0452.exile.web
 
+import com.github.niuhf0452.exile.common.Fluent
+import com.github.niuhf0452.exile.common.PublicApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.modules.SerialModule
 import java.time.Duration
@@ -12,6 +14,7 @@ import kotlin.reflect.KClass
  *
  * @since 1.0
  */
+@PublicApi
 interface WebServer : AutoCloseable {
     /**
      * Get the port the web server is listening on.
@@ -38,6 +41,7 @@ interface WebServer : AutoCloseable {
     /**
      * A factory to start web server.
      */
+    @PublicApi
     interface Factory {
         /**
          * Start a web server.
@@ -64,6 +68,7 @@ interface WebServer : AutoCloseable {
  *
  * @since 1.0
  */
+@PublicApi
 interface Router {
     /**
      * Add a route and map to handler.
@@ -148,6 +153,7 @@ interface Router {
  *
  * @since 1.0
  */
+@PublicApi
 interface WebHandler {
     suspend fun onRequest(context: RequestContext): WebResponse<Any>
 }
@@ -157,6 +163,7 @@ interface WebHandler {
  *
  * @since 1.0
  */
+@PublicApi
 interface WebExceptionHandler {
     fun handle(exception: Throwable): WebResponse<ByteArray>
 }
@@ -166,6 +173,7 @@ interface WebExceptionHandler {
  *
  * @since 1.0
  */
+@PublicApi
 interface RequestContext {
     val routePath: String
     val pathParams: Map<String, String>
@@ -178,6 +186,7 @@ interface RequestContext {
  *
  * @since 1.0
  */
+@PublicApi
 interface Variant {
     fun <T : Any> convertTo(cls: KClass<T>): T
 }
@@ -187,6 +196,7 @@ interface Variant {
  *
  * @since 1.0
  */
+@PublicApi
 interface WebEntitySerializer {
     val mediaTypes: List<MediaType>
 
@@ -198,6 +208,7 @@ interface WebEntitySerializer {
      * A factory to create serializer.
      * This type is used with JDK ServiceLoader. So please always provides a non-arg constructor.
      */
+    @PublicApi
     interface Factory {
         fun createSerializer(module: SerialModule): WebEntitySerializer
     }
@@ -212,6 +223,7 @@ interface WebEntitySerializer {
  *
  * @since 1.0
  */
+@PublicApi
 class FailureResponseException(val statusCode: Int, val description: String)
     : RuntimeException("$statusCode - $description")
 
@@ -220,6 +232,7 @@ class FailureResponseException(val statusCode: Int, val description: String)
  *
  * @since 1.0
  */
+@PublicApi
 interface WebClient {
     suspend fun send(request: WebRequest<Any>): WebResponse<Variant>
 
@@ -237,11 +250,21 @@ interface WebClient {
      */
     fun removeInterceptor(cls: KClass<*>)
 
+    @PublicApi
     interface Builder {
+        @Fluent
         fun maxKeepAliveConnectionSize(value: Int): Builder
+
+        @Fluent
         fun connectTimeout(value: Duration): Builder
+
+        @Fluent
         fun requestTimeout(value: Duration): Builder
+
+        @Fluent
         fun sslContext(value: SSLContext): Builder
+
+        @Fluent
         fun addInterceptor(interceptor: WebInterceptor) : Builder
 
         fun build(): WebClient
@@ -253,6 +276,7 @@ interface WebClient {
  *
  * @since 1.0
  */
+@PublicApi
 interface WebInterceptor {
     val order: Int
 

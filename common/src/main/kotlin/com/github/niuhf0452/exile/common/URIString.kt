@@ -3,6 +3,7 @@ package com.github.niuhf0452.exile.common
 import kotlinx.serialization.*
 import java.net.URI
 
+@PublicApi
 @Serializable(with = URIString.Serializer::class)
 data class URIString(
         private val value: URI

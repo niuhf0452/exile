@@ -1,8 +1,10 @@
 package com.github.niuhf0452.exile.web.interceptor
 
+import com.github.niuhf0452.exile.common.IntegrationApi
 import com.github.niuhf0452.exile.web.*
 import org.slf4j.LoggerFactory
 
+@IntegrationApi
 class LoggingInterceptor(
         private val maxEntityLogSize: Int,
         private val blacklist: Set<String>

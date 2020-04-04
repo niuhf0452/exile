@@ -3,6 +3,7 @@ package com.github.niuhf0452.exile.common
 import java.net.URLDecoder
 import java.net.URLEncoder
 
+@PublicApi
 object URLHelper {
     fun encodePath(s: String): String {
         return URLEncoder.encode(s, Charsets.UTF_8).replace("+", "%20")

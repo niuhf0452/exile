@@ -1,6 +1,7 @@
 package com.github.niuhf0452.exile.config.source
 
 import com.github.niuhf0452.exile.common.Bytes
+import com.github.niuhf0452.exile.common.PublicApi
 import com.github.niuhf0452.exile.common.URLHelper
 import com.github.niuhf0452.exile.config.Config
 import com.github.niuhf0452.exile.config.ConfigSourceLoader
@@ -10,6 +11,7 @@ import com.github.niuhf0452.exile.config.simpleconfig.SimpleConfigParser
 import java.net.URI
 import java.security.MessageDigest
 
+@PublicApi
 class SimpleConfigSource(
         private val content: String
 ) : Config.Source {

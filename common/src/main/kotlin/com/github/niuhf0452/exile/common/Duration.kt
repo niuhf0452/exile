@@ -3,6 +3,7 @@ package com.github.niuhf0452.exile.common
 import kotlinx.serialization.*
 import java.util.concurrent.TimeUnit
 
+@PublicApi
 @Serializable(with = Duration.Serializer::class)
 class Duration(val amount: Long, val unit: TimeUnit) : Comparable<Duration> {
     private val nano = TimeUnit.NANOSECONDS.convert(amount, unit)

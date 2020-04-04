@@ -1,14 +1,18 @@
 package com.github.niuhf0452.exile.web
 
+import com.github.niuhf0452.exile.common.Fluent
+import com.github.niuhf0452.exile.common.PublicApi
 import com.github.niuhf0452.exile.common.URLHelper
 import java.net.URI
 
+@PublicApi
 class WebRequest<out E>(
         val uri: URI,
         val method: String,
         val headers: MultiValueMap,
         val entity: E?
 ) {
+    @PublicApi
     class Builder<E>(
             private val method: String,
             _uri: String
@@ -30,7 +34,8 @@ class WebRequest<out E>(
             }
         }
 
-        fun setQueryString(value: String) {
+        @Fluent
+        fun setQueryString(value: String): Builder<E> {
             queryParams.clear()
             if (value.isNotBlank()) {
                 value.split('&').forEach { kv ->
@@ -41,39 +46,47 @@ class WebRequest<out E>(
                     }
                 }
             }
+            return this
         }
 
+        @Fluent
         fun setPathParam(name: String, value: String): Builder<E> {
             pathParams[name] = value
             return this
         }
 
+        @Fluent
         fun addQueryParam(name: String, value: String): Builder<E> {
             queryParams.add(name to value)
             return this
         }
 
+        @Fluent
         fun addHeader(name: String, value: String): Builder<E> {
             headers.add(name, value)
             return this
         }
 
+        @Fluent
         fun setHeader(name: String, value: Iterable<String>): Builder<E> {
             headers.set(name, value)
             return this
         }
 
+        @Fluent
         fun removeHeader(name: String): Builder<E> {
             headers.remove(name)
             return this
         }
 
+        @Fluent
         fun <T> entity(value: T): Builder<T> {
             entity = value
             @Suppress("UNCHECKED_CAST")
             return this as Builder<T>
         }
 
+        @Fluent
         fun noEntity(): Builder<Nothing> {
             entity = null
             @Suppress("UNCHECKED_CAST")
@@ -122,6 +135,7 @@ class WebRequest<out E>(
     }
 
     companion object {
+        @PublicApi
         fun newBuilder(method: String, uri: String): Builder<Nothing> {
             return Builder(method, uri)
         }

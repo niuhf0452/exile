@@ -1,5 +1,6 @@
 package com.github.niuhf0452.exile.config.source
 
+import com.github.niuhf0452.exile.common.PublicApi
 import com.github.niuhf0452.exile.common.URLHelper
 import com.github.niuhf0452.exile.config.*
 import com.github.niuhf0452.exile.config.internal.ConfigFragmentImpl
@@ -17,6 +18,7 @@ import java.nio.file.Paths
 import java.time.Duration
 import java.util.*
 
+@PublicApi
 @OptIn(UnstableDefault::class)
 class VaultSource(
         private val config: VaultConfig

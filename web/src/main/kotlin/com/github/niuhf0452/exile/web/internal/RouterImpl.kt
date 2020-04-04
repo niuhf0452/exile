@@ -30,23 +30,28 @@ class RouterImpl(
     }
 
     override suspend fun onRequest(request: WebRequest<ByteArray>): WebResponse<ByteArray> {
-        try {
-            return interceptors.handleRequest(request) { req ->
-                val response = try {
+        val response = try {
+            interceptors.handleRequest(request) { req ->
+                val resp = try {
                     handleRequest(req)
                 } catch (ex: Throwable) {
                     exceptionHandler.handle(ex)
                 }
                 // make sure connection header is always set correctly.
-                addConnectionHeader(response, request)
-                addContentLengthHeader(response)
-                addServerHeader(response)
-                response
+                addConnectionHeader(resp, request)
+                addContentLengthHeader(resp)
+                addServerHeader(resp)
+                resp
             }
         } catch (ex: Throwable) {
             log.error("Critical error", ex)
+            WebResponse.newBuilder().statusCode(500).build()
         }
-        return WebResponse.newBuilder().statusCode(500).build()
+        // make sure connection header is always set correctly.
+        addConnectionHeader(response, request)
+        addContentLengthHeader(response)
+        addServerHeader(response)
+        return response
     }
 
     override fun setExceptionHandler(handler: WebExceptionHandler) {
@@ -154,11 +159,11 @@ class RouterImpl(
     private fun addConnectionHeader(response: WebResponse<ByteArray>, request: WebRequest<ByteArray>) {
         val connectionValue = when {
             !config.keepAlive
-                    || request.headers.get("Connection").firstOrNull() == "close"
-                    || response.headers.get("Connection").firstOrNull() == "close" -> "close"
+                    || request.headers.get(CommonHeaders.Connection).firstOrNull() == "close"
+                    || response.headers.get(CommonHeaders.Connection).firstOrNull() == "close" -> "close"
             else -> "keep-alive"
         }
-        response.headers.set("Connection", listOf(connectionValue))
+        response.headers.set(CommonHeaders.Connection, listOf(connectionValue))
     }
 
     private fun addContentLengthHeader(response: WebResponse<ByteArray>) {
@@ -171,8 +176,8 @@ class RouterImpl(
 
     private fun addServerHeader(response: WebResponse<ByteArray>) {
         if (config.serverHeader.isNotEmpty()
-                && response.headers.get("Server").firstOrNull() == null) {
-            response.headers.add("Server", config.serverHeader)
+                && response.headers.get(CommonHeaders.Server).firstOrNull() == null) {
+            response.headers.add(CommonHeaders.Server, config.serverHeader)
         }
     }
 

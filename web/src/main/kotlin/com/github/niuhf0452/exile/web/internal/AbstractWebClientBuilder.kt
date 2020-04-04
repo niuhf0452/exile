@@ -1,8 +1,7 @@
-package com.github.niuhf0452.exile.web.client
+package com.github.niuhf0452.exile.web.internal
 
 import com.github.niuhf0452.exile.web.WebClient
 import com.github.niuhf0452.exile.web.WebInterceptor
-import com.github.niuhf0452.exile.web.internal.InterceptorList
 import java.time.Duration
 import javax.net.ssl.SSLContext
 

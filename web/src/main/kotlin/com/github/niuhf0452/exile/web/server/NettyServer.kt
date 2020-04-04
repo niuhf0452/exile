@@ -1,5 +1,6 @@
 package com.github.niuhf0452.exile.web.server
 
+import com.github.niuhf0452.exile.common.PublicApi
 import com.github.niuhf0452.exile.web.*
 import com.github.niuhf0452.exile.web.internal.RouterImpl
 import io.netty.bootstrap.ServerBootstrap
@@ -32,6 +33,7 @@ class NettyServer(
         workerLoop.shutdownGracefully()
     }
 
+    @PublicApi
     class Factory : WebServer.Factory {
         override fun startServer(config: WebServer.Config, coroutineContext: CoroutineContext, router: Router?): WebServer {
             val router0 = router ?: RouterImpl(config)

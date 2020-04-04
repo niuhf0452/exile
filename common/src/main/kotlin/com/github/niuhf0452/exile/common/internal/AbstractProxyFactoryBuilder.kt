@@ -3,6 +3,7 @@ package com.github.niuhf0452.exile.common.internal
 import com.github.niuhf0452.exile.common.ProxyFactory
 import com.github.niuhf0452.exile.common.ProxyFactoryBuilder
 import com.github.niuhf0452.exile.common.ProxyMethodHandler
+import com.github.niuhf0452.exile.common.PublicApi
 import java.lang.invoke.MethodHandles
 import java.lang.invoke.MethodType
 import java.lang.reflect.InvocationTargetException
@@ -13,6 +14,7 @@ import kotlin.reflect.KMutableProperty
 import kotlin.reflect.KProperty
 import kotlin.reflect.jvm.javaMethod
 
+@PublicApi
 abstract class AbstractProxyFactoryBuilder<A> : ProxyFactoryBuilder<A> {
     private val interfaces = mutableListOf<KClass<*>>()
     private var filter: (KFunction<*>) -> Boolean = { true }

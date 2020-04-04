@@ -20,6 +20,7 @@ object Vers {
     const val netty = "4.1.48.Final"
     const val servlet = "4.0.1"
     const val jetty = "9.4.27.v20200227"
+    const val opentracing = "0.33.0"
 }
 
 object Bom {
@@ -50,6 +51,7 @@ object Bom {
     const val `serial-xml` = "net.devrieze:xmlutil-serialization-jvm:0.20.0.0"
     const val `serial-bson` = "com.github.jershell:kbson:0.2.1"
     const val `serial-avro` = "com.sksamuel.avro4k:avro4k-core:0.30.0"
+    const val `opentracing-api` = "io.opentracing:opentracing-api:${Vers.opentracing}"
 }
 
 val Project.bom: Bom

@@ -1,5 +1,6 @@
 package com.github.niuhf0452.exile.config
 
+import com.github.niuhf0452.exile.common.PublicApi
 import com.github.niuhf0452.exile.config.VaultConfig.AuthMethod
 import com.github.niuhf0452.exile.config.source.VaultSource
 import kotlinx.serialization.Serializable
@@ -7,6 +8,7 @@ import kotlinx.serialization.Serializable
 /**
  * A configuration of Vault.
  */
+@PublicApi
 @Serializable
 data class VaultConfig(
         /**
@@ -60,6 +62,7 @@ data class VaultConfig(
 /**
  * Add a source which loads values from Vault.
  */
+@PublicApi
 fun Config.Builder.fromVault(config: VaultConfig): Config.Builder {
     return from(VaultSource(config))
 }

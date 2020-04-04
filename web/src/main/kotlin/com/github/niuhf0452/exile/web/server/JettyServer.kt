@@ -1,5 +1,6 @@
 package com.github.niuhf0452.exile.web.server
 
+import com.github.niuhf0452.exile.common.PublicApi
 import com.github.niuhf0452.exile.web.Router
 import com.github.niuhf0452.exile.web.WebServer
 import com.github.niuhf0452.exile.web.internal.RouterImpl
@@ -20,6 +21,7 @@ class JettyServer(
         server.stop()
     }
 
+    @PublicApi
     class Factory : WebServer.Factory {
         override fun startServer(config: WebServer.Config, coroutineContext: CoroutineContext, router: Router?): WebServer {
             val router0 = router ?: RouterImpl(config)

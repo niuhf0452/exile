@@ -1,9 +1,12 @@
 package com.github.niuhf0452.exile.web.client
 
+import com.github.niuhf0452.exile.common.PublicApi
 import com.github.niuhf0452.exile.web.MultiValueMap
 import com.github.niuhf0452.exile.web.WebClient
 import com.github.niuhf0452.exile.web.WebRequest
 import com.github.niuhf0452.exile.web.WebResponse
+import com.github.niuhf0452.exile.web.internal.AbstractWebClient
+import com.github.niuhf0452.exile.web.internal.AbstractWebClientBuilder
 import com.github.niuhf0452.exile.web.internal.InterceptorList
 import kotlinx.coroutines.future.await
 import java.net.http.HttpClient
@@ -45,6 +48,7 @@ class JdkHttpClient(
         return WebResponse(resp.statusCode(), headers, entity)
     }
 
+    @PublicApi
     class Builder : AbstractWebClientBuilder() {
         override fun createClient(maxKeepAliveConnectionSize: Int,
                                   connectTimeout: Duration,

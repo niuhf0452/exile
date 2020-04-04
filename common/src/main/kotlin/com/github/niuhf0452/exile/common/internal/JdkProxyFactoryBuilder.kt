@@ -1,10 +1,12 @@
 package com.github.niuhf0452.exile.common.internal
 
 import com.github.niuhf0452.exile.common.ProxyFactory
+import com.github.niuhf0452.exile.common.PublicApi
 import java.lang.reflect.InvocationHandler
 import java.lang.reflect.Method
 import java.lang.reflect.Proxy
 
+@PublicApi
 class JdkProxyFactoryBuilder<A> : AbstractProxyFactoryBuilder<A>() {
     override fun createFactory(classLoader: ClassLoader,
                                interfaces: List<Class<*>>,

@@ -1,5 +1,6 @@
 package com.github.niuhf0452.exile.config.source
 
+import com.github.niuhf0452.exile.common.PublicApi
 import com.github.niuhf0452.exile.config.Config
 import com.github.niuhf0452.exile.config.ConfigException
 import com.github.niuhf0452.exile.config.ConfigSourceLoader
@@ -10,6 +11,7 @@ import java.io.InputStream
 import java.net.URI
 import java.util.*
 
+@PublicApi
 class FileSource(
         private val location: URI,
         private val fileType: FileType = getFileType(location)

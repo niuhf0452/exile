@@ -1,5 +1,7 @@
 package com.github.niuhf0452.exile.config
 
+import com.github.niuhf0452.exile.common.Fluent
+import com.github.niuhf0452.exile.common.PublicApi
 import com.github.niuhf0452.exile.config.internal.AutoConfigurator
 import com.github.niuhf0452.exile.config.internal.ConfigImpl
 import com.github.niuhf0452.exile.config.internal.ConfigMapperImpl
@@ -20,6 +22,7 @@ import kotlin.reflect.KClass
  * @param value The value.
  * @since 1.0
  */
+@PublicApi
 data class ConfigValue(val location: URI, val path: String, val value: String) {
     /**
      * Get the value.
@@ -69,6 +72,7 @@ data class ConfigValue(val location: URI, val path: String, val value: String) {
  *
  * @since 1.0
  */
+@PublicApi
 interface ConfigFragment : Iterable<ConfigValue> {
     /**
      * Get the config value at certain path, or null if there's no value matched the path.
@@ -159,6 +163,7 @@ interface ConfigFragment : Iterable<ConfigValue> {
  *
  * @since 1.0
  */
+@PublicApi
 interface Config : ConfigFragment {
     fun getSnapshot(): ConfigFragment
 
@@ -233,16 +238,19 @@ interface Config : ConfigFragment {
         /**
          * Add a source.
          */
+        @Fluent
         fun from(source: Source, order: Order = Order.OVERWRITE): Builder
 
         /**
          * Add a source which loads values from the simple config string.
          */
+        @Fluent
         fun fromString(content: String, order: Order = Order.OVERWRITE): Builder
 
         /**
          * Add a source which loads values from the properties object.
          */
+        @Fluent
         fun fromProperties(props: Properties, order: Order = Order.OVERWRITE): Builder
 
         /**
@@ -256,26 +264,31 @@ interface Config : ConfigFragment {
          * * .* - Auto search any files with supported extensions.
          *        If multiple files found, all of them will be loaded. But the priority is not guaranteed.
          */
+        @Fluent
         fun fromResource(path: String, order: Order = Order.OVERWRITE): Builder
 
         /**
          * Add a source which loads values from file. It's similar as [fromResource], but the file can be external.
          */
+        @Fluent
         fun fromFile(url: URI, order: Order = Order.OVERWRITE): Builder
 
         /**
          * Add a source which loads values from file.
          */
+        @Fluent
         fun fromFile(path: String, order: Order = Order.OVERWRITE): Builder
 
         /**
          * Add a source which loads values from file from environment variables.
          */
+        @Fluent
         fun fromEnvironment(): Builder
 
         /**
          * Add a source which loads values from system properties.
          */
+        @Fluent
         fun fromSystemProperties(): Builder
 
         /**
@@ -293,17 +306,20 @@ interface Config : ConfigFragment {
          *                              The parameters of Vault are passed in by query string.
          *                              See [VaultConfig].
          */
+        @Fluent
         fun from(uri: URI, order: Order = Order.OVERWRITE): Builder
 
         /**
          * Add a [ValueResolver].
          */
+        @Fluent
         fun addResolver(resolver: ValueResolver): Builder
 
         fun build(): Config
     }
 
     companion object {
+        @PublicApi
         fun newBuilder(): Builder {
             return ConfigImpl.Builder()
         }
@@ -316,10 +332,12 @@ interface Config : ConfigFragment {
  *
  * @since 1.0
  */
+@PublicApi
 interface ConfigSourceLoader {
     fun load(uri: URI): Config.Source?
 }
 
+@PublicApi
 class ConfigException(message: String, exception: Exception? = null)
     : RuntimeException(message, exception)
 
@@ -335,6 +353,7 @@ class ConfigException(message: String, exception: Exception? = null)
  * * Consistent view of piece of configuration within the type-safe object.
  * * Listen to changes of configuration.
  */
+@PublicApi
 interface ConfigMapper {
     /**
      * Add a mapping.
@@ -432,6 +451,7 @@ interface ConfigMapper {
     }
 
     companion object {
+        @PublicApi
         fun newMapper(config: Config): ConfigMapper {
             return ConfigMapperImpl(config)
         }
@@ -444,6 +464,7 @@ interface ConfigMapper {
  *
  * @since 1.0
  */
+@PublicApi
 @MustBeDocumented
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.RUNTIME)
@@ -454,6 +475,7 @@ annotation class Configuration(val value: String)
  *
  * @since 1.0
  */
+@PublicApi
 fun Config.Builder.autoConfigure(
         configFile: String = AutoConfigurator.getConfigFile(),
         activeProfiles: List<String> = AutoConfigurator.getActiveProfiles(),
@@ -467,6 +489,7 @@ fun Config.Builder.autoConfigure(
  *
  * @since 1.0
  */
+@PublicApi
 fun <T> ConfigFragment.parse(serial: DeserializationStrategy<T>): T {
     return SimpleConfig().parse(this, serial)
 }
@@ -476,6 +499,7 @@ fun <T> ConfigFragment.parse(serial: DeserializationStrategy<T>): T {
  *
  * @since 1.0
  */
+@PublicApi
 fun <T> Config.Companion.toConfig(serial: SerializationStrategy<T>, data: T, location: URI = EmptyConfig.location): ConfigFragment {
     return SimpleConfig().toConfig(data, serial, location)
 }

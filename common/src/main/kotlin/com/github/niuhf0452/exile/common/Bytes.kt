@@ -1,5 +1,6 @@
 package com.github.niuhf0452.exile.common
 
+@PublicApi
 object Bytes {
     private val hexTable = CharArray(16) { i ->
         if (i < 10) {

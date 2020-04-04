@@ -1,8 +1,10 @@
 package com.github.niuhf0452.exile.web
 
+import com.github.niuhf0452.exile.common.PublicApi
 import java.util.*
 import kotlin.collections.ArrayList
 
+@PublicApi
 class MultiValueMap(caseSensitivity: Boolean) : Iterable<String> {
     private val headers: MutableMap<String, MutableList<String>> =
             if (caseSensitivity) HashMap() else TreeMap(String.CASE_INSENSITIVE_ORDER)

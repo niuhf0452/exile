@@ -3,6 +3,7 @@ package com.github.niuhf0452.exile.common
 import kotlinx.coroutines.runBlocking
 import kotlin.reflect.KFunction
 
+@PublicApi
 abstract class AsyncMethodHandler<in A> : ProxyMethodHandler<A> {
     protected abstract val function: KFunction<*>
 

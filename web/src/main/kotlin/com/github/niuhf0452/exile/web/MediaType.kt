@@ -1,8 +1,10 @@
 package com.github.niuhf0452.exile.web
 
+import com.github.niuhf0452.exile.common.PublicApi
 import java.nio.charset.Charset
 import java.nio.charset.UnsupportedCharsetException
 
+@PublicApi
 data class MediaType(
         val text: String,
         val type: String,

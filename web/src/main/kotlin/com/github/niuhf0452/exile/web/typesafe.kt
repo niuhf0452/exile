@@ -1,5 +1,6 @@
 package com.github.niuhf0452.exile.web
 
+import com.github.niuhf0452.exile.common.PublicApi
 import com.github.niuhf0452.exile.web.internal.DefaultTypeSafeHandlerInjector
 import com.github.niuhf0452.exile.web.internal.TypeSafeClientHandler
 import com.github.niuhf0452.exile.web.internal.TypeSafeServerHandler
@@ -12,6 +13,7 @@ import kotlin.reflect.KClass
  *
  * @since 1.0
  */
+@PublicApi
 @MustBeDocumented
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.RUNTIME)
@@ -32,6 +34,7 @@ annotation class WebEndpoint(val value: String)
  *
  * @since 1.0
  */
+@PublicApi
 @MustBeDocumented
 @Target(AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.RUNTIME)
@@ -45,6 +48,7 @@ annotation class WebMethod(val method: String, val path: String)
  *
  * @since 1.0
  */
+@PublicApi
 @MustBeDocumented
 @Target(AnnotationTarget.VALUE_PARAMETER)
 @Retention(AnnotationRetention.RUNTIME)
@@ -58,6 +62,7 @@ annotation class WebPathParam(val value: String = "")
  *
  * @since 1.0
  */
+@PublicApi
 @MustBeDocumented
 @Target(AnnotationTarget.VALUE_PARAMETER)
 @Retention(AnnotationRetention.RUNTIME)
@@ -71,6 +76,7 @@ annotation class WebQueryParam(val value: String = "")
  *
  * @since 1.0
  */
+@PublicApi
 @MustBeDocumented
 @Target(AnnotationTarget.VALUE_PARAMETER)
 @Retention(AnnotationRetention.RUNTIME)
@@ -81,6 +87,7 @@ annotation class WebHeader(val value: String = "")
  *
  * @since 1.0
  */
+@PublicApi
 @MustBeDocumented
 @Target(AnnotationTarget.VALUE_PARAMETER)
 @Retention(AnnotationRetention.RUNTIME)
@@ -97,6 +104,7 @@ annotation class WebEntity
  *
  * @since 1.0
  */
+@PublicApi
 fun Router.addTypeSafeHandler(cls: KClass<*>, injector: TypeSafeHandlerInjector = DefaultTypeSafeHandlerInjector) {
     TypeSafeServerHandler.addHandlers(this, cls, injector)
 }
@@ -106,6 +114,7 @@ fun Router.addTypeSafeHandler(cls: KClass<*>, injector: TypeSafeHandlerInjector 
  *
  * @since 1.0
  */
+@PublicApi
 interface TypeSafeHandlerInjector {
     fun <A : Any> getInstance(cls: KClass<A>): A
 }
@@ -128,6 +137,7 @@ interface TypeSafeHandlerInjector {
  *
  * @since 1.0
  */
+@PublicApi
 interface VariableTypeConverter<A> {
     fun parse(value: String): A
     fun stringify(value: A): String
@@ -138,10 +148,12 @@ interface VariableTypeConverter<A> {
  *
  * @since 1.0
  */
+@PublicApi
 interface TypeSafeClientFactory<A> {
     fun getClient(client: WebClient, uri: String): A
 
     companion object {
+        @PublicApi
         fun <A : Any> of(cls: KClass<A>): TypeSafeClientFactory<A> {
             return TypeSafeClientHandler.getClientFactory(cls)
         }
@@ -154,5 +166,6 @@ interface TypeSafeClientFactory<A> {
  *
  * @since 1.0
  */
+@PublicApi
 class ClientResponseException(val response: WebResponse<*>, message: String, cause: Exception? = null)
     : RuntimeException(message, cause)
