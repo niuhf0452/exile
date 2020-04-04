@@ -185,7 +185,7 @@ class RouterTest : FunSpec({
                 .newBuilder("GET", "http://localhost/test")
                 .build())
         response.statusCode shouldBe 200
-        response.headers.get("Content-Type").firstOrNull() shouldBe "application/json"
+        response.headers.get(CommonHeaders.ContentType).firstOrNull() shouldBe "application/json"
     }
 }) {
     class TextHandler(
@@ -194,7 +194,7 @@ class RouterTest : FunSpec({
         override suspend fun onRequest(context: RequestContext): WebResponse<Any> {
             return WebResponse.newBuilder()
                     .statusCode(200)
-                    .addHeader("Content-Type", "text/plain")
+                    .addHeader(CommonHeaders.ContentType, "text/plain")
                     .entity(value)
                     .build()
         }
@@ -220,7 +220,7 @@ class RouterTest : FunSpec({
                     ?: throw IllegalStateException("Path variable is missing: name")
             return WebResponse.newBuilder()
                     .statusCode(200)
-                    .addHeader("Content-Type", "text/plain")
+                    .addHeader(CommonHeaders.ContentType, "text/plain")
                     .entity(name)
                     .build()
         }

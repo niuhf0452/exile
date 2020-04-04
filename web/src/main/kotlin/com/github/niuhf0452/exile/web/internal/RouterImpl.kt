@@ -51,10 +51,10 @@ class RouterImpl(
         val pathVariables = mutableMapOf<String, String>()
         val route = matchRoute(method, path, pathVariables)
                 ?: throw FailureResponseException(404, "The method and path is not handled: $method $path")
-        val contentType = request.headers.get("Content-Type").firstOrNull()
+        val contentType = request.headers.get(CommonHeaders.ContentType).firstOrNull()
                 ?.let { MediaType.parse(it) }
                 ?: MediaType.APPLICATION_JSON
-        val acceptTypes = request.headers.get("Accept").map { MediaType.parse(it) }
+        val acceptTypes = request.headers.get(CommonHeaders.Accept).map { MediaType.parse(it) }
                 .let { if (it.isEmpty()) listOf(MediaType.ALL) else it }
         val deserializer = EntitySerializers.getSerializer(contentType)
                 ?: throw FailureResponseException(415, "The media type is not supported: $contentType")
@@ -98,7 +98,7 @@ class RouterImpl(
                              defaultSerializer: WebEntitySerializer,
                              acceptTypes: List<MediaType>): WebResponse<ByteArray> {
         var serializer = defaultSerializer
-        val contentType = response.headers.get("Content-Type").firstOrNull()
+        val contentType = response.headers.get(CommonHeaders.ContentType).firstOrNull()
                 ?.let { MediaType.parse(it) }
                 ?: defaultType
         if (contentType !== defaultType) {
@@ -116,7 +116,7 @@ class RouterImpl(
             else -> {
                 val entity = serializer.serialize(response.entity, contentType)
                 if (contentType === defaultType) {
-                    response.headers.set("Content-Type", listOf(contentType.toString()))
+                    response.headers.set(CommonHeaders.ContentType, listOf(contentType.toString()))
                 }
                 WebResponse(response.statusCode, response.headers, entity)
             }

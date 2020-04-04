@@ -1,9 +1,6 @@
 package com.github.niuhf0452.exile.web.server
 
-import com.github.niuhf0452.exile.web.MultiValueMap
-import com.github.niuhf0452.exile.web.Router
-import com.github.niuhf0452.exile.web.WebRequest
-import com.github.niuhf0452.exile.web.WebResponse
+import com.github.niuhf0452.exile.web.*
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.GlobalScope
@@ -97,7 +94,7 @@ class RouterServlet(
 
     private fun Throwable.writeToServletResponse(servletResponse: HttpServletResponse) {
         servletResponse.sendError(500)
-        servletResponse.setHeader("Content-Type", "text/plain")
+        servletResponse.setHeader(CommonHeaders.ContentType, "text/plain")
         printStackTrace(servletResponse.writer)
     }
 

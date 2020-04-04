@@ -49,7 +49,7 @@ abstract class ClientAndServerTest(
         test("A client should send entity") {
             val response = client.send(WebRequest
                     .newBuilder("POST", "http://localhost:${server.port}/test3")
-                    .addHeader("Content-Type", "text/plain")
+                    .addHeader(CommonHeaders.ContentType, "text/plain")
                     .entity("foo")
                     .build())
             response.statusCode shouldBe 200
@@ -94,14 +94,14 @@ abstract class ClientAndServerTest(
 
         router.addRoute("POST", "/test3", object : WebHandler {
             override suspend fun onRequest(context: RequestContext): WebResponse<Any> {
-                val contentType = context.request.headers.get("Content-Type").firstOrNull()
+                val contentType = context.request.headers.get(CommonHeaders.ContentType).firstOrNull()
                 contentType shouldBe "text/plain"
                 val entity = context.request.entity
                 entity.shouldNotBeNull()
                 val text = entity.convertTo(String::class)
                 return WebResponse.newBuilder()
                         .statusCode(200)
-                        .addHeader("Content-Type", "text/plain")
+                        .addHeader(CommonHeaders.ContentType, "text/plain")
                         .entity(text)
                         .build()
             }

@@ -13,11 +13,11 @@ abstract class AbstractWebClient : WebClient {
             request as WebRequest<ByteArray>
         } else {
             var headers = request.headers
-            var mediaType = headers.get("Content-Type").firstOrNull()
+            var mediaType = headers.get(CommonHeaders.ContentType).firstOrNull()
                     ?.let { MediaType.parse(it) }
             if (mediaType == null) {
                 headers = MultiValueMap(headers, false)
-                headers.add("Content-Type", "application/json")
+                headers.add(CommonHeaders.ContentType, "application/json")
                 mediaType = MediaType.APPLICATION_JSON
             }
             val serializer = EntitySerializers.getSerializer(mediaType)
@@ -29,7 +29,7 @@ abstract class AbstractWebClient : WebClient {
         if (response.entity == null) {
             return WebResponse(response.statusCode, response.headers, null)
         }
-        val contentType = response.headers.get("Content-Type").firstOrNull()
+        val contentType = response.headers.get(CommonHeaders.ContentType).firstOrNull()
                 ?: throw IllegalArgumentException("The response has entity but Content-Type header is missing")
         val mediaType = MediaType.parse(contentType)
         val serializer = EntitySerializers.getSerializer(mediaType)
