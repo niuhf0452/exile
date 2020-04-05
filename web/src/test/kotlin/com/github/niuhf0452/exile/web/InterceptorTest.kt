@@ -12,8 +12,9 @@ import io.kotlintest.specs.FunSpec
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.modules.EmptyModule
+import org.apache.logging.log4j.core.LogEvent
 import org.apache.logging.log4j.core.LoggerContext
-import org.apache.logging.log4j.test.appender.ListAppender
+import org.apache.logging.log4j.core.appender.AbstractAppender
 
 class InterceptorTest : FunSpec({
     test("A LoggingInterceptor should output logs") {
@@ -40,12 +41,18 @@ class InterceptorTest : FunSpec({
 
         val context = LoggerContext.getContext(false)
         val logger = context.getLogger(LoggingInterceptor::class.qualifiedName)
-        val appender = ListAppender("list")
+        val appender = object : AbstractAppender("list",
+                null, null, true, emptyArray()) {
+            val events = mutableListOf<LogEvent>()
+            override fun append(event: LogEvent) {
+                events.add(event)
+            }
+        }
         logger.addAppender(appender)
         try {
             runWith(LoggingInterceptor(1024, emptySet()))
             appender.events.size shouldBe 2
-            appender.clear()
+            appender.events.clear()
             runWith(LoggingInterceptor(1024, setOf("localhost")))
             appender.events.shouldBeEmpty()
         } finally {

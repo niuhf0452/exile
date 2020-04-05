@@ -32,16 +32,11 @@ class RouterImpl(
     override suspend fun onRequest(request: WebRequest<ByteArray>): WebResponse<ByteArray> {
         val response = try {
             interceptors.handleRequest(request) { req ->
-                val resp = try {
+                try {
                     handleRequest(req)
                 } catch (ex: Throwable) {
                     exceptionHandler.handle(ex)
                 }
-                // make sure connection header is always set correctly.
-                addConnectionHeader(resp, request)
-                addContentLengthHeader(resp)
-                addServerHeader(resp)
-                resp
             }
         } catch (ex: Throwable) {
             log.error("Critical error", ex)

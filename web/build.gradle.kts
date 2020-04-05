@@ -26,8 +26,8 @@ dependencies {
     compileOnly(bom.`jetty-server`)
     compileOnly(bom.`jetty-servlet`)
     testImplementation(bom.`log4j-slf4j-impl`)
+    testImplementation(bom.`log4j-core`)
     testImplementation(bom.`servlet-api`)
     testImplementation(bom.`jetty-server`)
     testImplementation(bom.`jetty-servlet`)
-    testImplementation(bom.`log4j-test`)
 }
