@@ -8,10 +8,10 @@ jobs:
       - image: openjdk:11-jdk-stretch
     steps:
       - checkout
-      - restore_cache:
-          key: v1-gradle-wrapper-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}
-      - restore_cache:
-          key: v1-gradle-cache-{{ checksum "build.gradle.kts" }}
+#      - restore_cache:
+#          key: v1-gradle-wrapper-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}
+#      - restore_cache:
+#          key: v1-gradle-cache-{{ checksum "build.gradle.kts" }}
       - run:
           name: Run build and test in parallel
           command: |
