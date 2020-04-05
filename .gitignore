@@ -43,3 +43,8 @@ out/
 
 # kotlintest
 .kotlintest
+
+# node
+node_modules/
+dist/
+.cache/

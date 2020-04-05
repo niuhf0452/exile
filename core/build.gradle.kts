@@ -10,7 +10,6 @@ dependencies {
     api(submodule("inject"))
     api(submodule("config"))
     api(submodule("web"))
-    implementation(bom.guava)
     // logging bridge
     api(bom.`slf4j-api`)
     implementation(bom.`log4j-slf4j-impl`)
