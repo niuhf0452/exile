@@ -57,7 +57,3 @@ object Bom {
 
 val Project.bom: Bom
     get() = Bom
-
-fun Project.submodule(name: String): Project {
-    return project(":${rootProject.name}-$name")
-}

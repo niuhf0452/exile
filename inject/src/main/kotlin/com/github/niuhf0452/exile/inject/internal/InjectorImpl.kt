@@ -122,6 +122,10 @@ class InjectorImpl(
             return addBinder(ServiceLoaderBinder())
         }
 
+        override fun enableConfigFile(): InjectorBuilder {
+            return addBinder(ConfigFileBinder())
+        }
+
         override fun enableScope(): InjectorBuilder {
             return addFilter(ScopeSupportFilter())
         }

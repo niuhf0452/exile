@@ -143,12 +143,12 @@ class ConfigImpl(
             }
             if (path0.endsWith(".*")) {
                 val file = path0.substring(0, path0.length - 2)
-                FileSource.supportedFileTypes.forEach { type ->
-                    loadResource(composite, "$file.${type.ext}")
+                FileSource.supportedFileTypes.forEach { ext ->
+                    loadResource(composite, "$file.$ext")
                 }
             } else {
                 // check file type
-                FileSource.getFileType(URI.create("file:/${path0}"))
+                FileSource.getParser(URI.create("file:/${path0}"))
                 loadResource(composite, path0)
             }
             return from(composite, order)

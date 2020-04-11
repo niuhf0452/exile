@@ -2,3 +2,4 @@ com.github.niuhf0452.exile.inject.binder.AutowireBinder$Loader
 com.github.niuhf0452.exile.inject.binder.AutowireFactoryBinder$Loader
 com.github.niuhf0452.exile.inject.binder.ServiceLoaderBinder$Loader
 com.github.niuhf0452.exile.inject.scope.ScopeSupportFilter$Loader
+com.github.niuhf0452.exile.inject.binder.ConfigFileBinder$Loader

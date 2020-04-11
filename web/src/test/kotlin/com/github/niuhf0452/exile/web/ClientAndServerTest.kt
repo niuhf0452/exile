@@ -1,8 +1,5 @@
 package com.github.niuhf0452.exile.web
 
-import com.github.niuhf0452.exile.web.client.JdkHttpClient
-import com.github.niuhf0452.exile.web.server.JettyServer
-import com.github.niuhf0452.exile.web.server.NettyServer
 import io.kotlintest.Spec
 import io.kotlintest.matchers.boolean.shouldBeTrue
 import io.kotlintest.matchers.types.shouldBeNull
@@ -14,10 +11,6 @@ import kotlinx.serialization.Serializable
 import org.slf4j.LoggerFactory
 import java.time.Duration
 import java.util.concurrent.atomic.AtomicBoolean
-
-class NettyServerTest : ClientAndServerTest(JdkHttpClient.Builder(), NettyServer.Factory())
-
-class JettyServerTest : ClientAndServerTest(JdkHttpClient.Builder(), JettyServer.Factory())
 
 abstract class ClientAndServerTest(
         clientBuilder: WebClient.Builder,
@@ -32,16 +25,14 @@ abstract class ClientAndServerTest(
 
     init {
         test("A client should send request") {
-            val response = client.send(WebRequest
-                    .newBuilder("GET", "http://localhost:${server.port}/test1")
+            val response = client.send(WebRequest.newBuilder("GET", "http://localhost:${server.port}/test1")
                     .build())
             response.statusCode shouldBe 204
             response.entity.shouldBeNull()
         }
 
         test("A client should get response entity") {
-            val response = client.send(WebRequest
-                    .newBuilder("GET", "http://localhost:${server.port}/test2")
+            val response = client.send(WebRequest.newBuilder("GET", "http://localhost:${server.port}/test2")
                     .build())
             response.statusCode shouldBe 200
             response.entity.shouldNotBeNull()
@@ -49,8 +40,7 @@ abstract class ClientAndServerTest(
         }
 
         test("A client should send entity") {
-            val response = client.send(WebRequest
-                    .newBuilder("POST", "http://localhost:${server.port}/test3")
+            val response = client.send(WebRequest.newBuilder("POST", "http://localhost:${server.port}/test3")
                     .addHeader(CommonHeaders.ContentType, "text/plain")
                     .entity("foo")
                     .build())
@@ -60,8 +50,7 @@ abstract class ClientAndServerTest(
         }
 
         test("A server should accept header with multiple values") {
-            val response = client.send(WebRequest
-                    .newBuilder("GET", "http://localhost:${server.port}/test2")
+            val response = client.send(WebRequest.newBuilder("GET", "http://localhost:${server.port}/test2")
                     .addHeader("Accept", "text/plain, application/json")
                     .build())
             response.statusCode shouldBe 200
@@ -70,8 +59,7 @@ abstract class ClientAndServerTest(
         }
 
         test("A server should return 404 if request not handled") {
-            val response = client.send(WebRequest
-                    .newBuilder("GET", "http://localhost:${server.port}/404")
+            val response = client.send(WebRequest.newBuilder("GET", "http://localhost:${server.port}/404")
                     .build())
             response.statusCode shouldBe 404
         }
@@ -86,8 +74,7 @@ abstract class ClientAndServerTest(
                         }
                     })
                     .build()
-            val response = client0.send(WebRequest
-                    .newBuilder("GET", "http://localhost:${server.port}/404")
+            val response = client0.send(WebRequest.newBuilder("GET", "http://localhost:${server.port}/404")
                     .build())
             response.statusCode shouldBe 404
             called.get().shouldBeTrue()

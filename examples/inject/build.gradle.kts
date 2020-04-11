@@ -1,5 +1,3 @@
-import com.github.niuhf0452.exile.submodule
-
 plugins {
     id("exile.kotlin")
     id("exile.kotlin.serialization")
@@ -7,5 +5,5 @@ plugins {
 }
 
 dependencies {
-    implementation(submodule("inject"))
+    implementation(project(":${rootProject.name}-inject"))
 }

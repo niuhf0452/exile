@@ -23,6 +23,8 @@ interface InjectorBuilder {
 
     fun enableServiceLoader(): InjectorBuilder
 
+    fun enableConfigFile(): InjectorBuilder
+
     fun enableScope(): InjectorBuilder
 
     fun build(): Injector

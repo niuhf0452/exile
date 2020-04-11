@@ -26,9 +26,8 @@ object Orders {
     }
 
     fun getOrder(cls: KClass<*>): Int {
-        val a = cls.findAnnotation<Order>()
-                ?: return DEFAULT
-        return a.value
+        return cls.findAnnotation<Order>()?.value
+                ?: DEFAULT
     }
 
     fun comparator(): Comparator<Any> {

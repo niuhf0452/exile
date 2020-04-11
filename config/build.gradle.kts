@@ -1,5 +1,4 @@
 import com.github.niuhf0452.exile.bom
-import com.github.niuhf0452.exile.submodule
 
 plugins {
     id("exile.kotlin")
@@ -12,8 +11,8 @@ dependencies {
     api(bom.`kotlin-stdlib-jdk8`)
     api(bom.`kotlin-reflect`)
     api(bom.`slf4j-api`)
-    api(submodule("common"))
-    compileOnly(submodule("inject"))
+    api(project(":${rootProject.name}-common"))
+    compileOnly(project(":${rootProject.name}-inject"))
     testImplementation(bom.`log4j-slf4j-impl`)
     testImplementation(bom.`wiremock-jre8`)
 }

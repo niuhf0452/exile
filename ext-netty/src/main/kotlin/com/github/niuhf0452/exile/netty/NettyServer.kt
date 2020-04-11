@@ -1,4 +1,4 @@
-package com.github.niuhf0452.exile.web.server
+package com.github.niuhf0452.exile.netty
 
 import com.github.niuhf0452.exile.common.PublicApi
 import com.github.niuhf0452.exile.web.*

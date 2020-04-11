@@ -6,21 +6,19 @@ import com.github.niuhf0452.exile.config.ConfigException
 import com.github.niuhf0452.exile.config.ConfigSourceLoader
 import com.github.niuhf0452.exile.config.ConfigValue
 import com.github.niuhf0452.exile.config.internal.Util.log
-import com.github.niuhf0452.exile.config.simpleconfig.SimpleConfigParser
-import java.io.InputStream
 import java.net.URI
 import java.util.*
 
 @PublicApi
 class FileSource(
-        private val location: URI,
-        private val fileType: FileType = getFileType(location)
+        private val location: URI
 ) : Config.Source {
     override fun load(): Iterable<ConfigValue> {
-        log.info("Load config from file: $fileType, $location")
+        log.info("Load config from file: $location")
+        val parser = getParser(location)
         val values = mutableListOf<ConfigValue>()
         location.toURL().openStream().use { input ->
-            fileType.parse(input).forEach { (p, v) ->
+            parser.parse(input).forEach { (p, v) ->
                 values.add(ConfigValue(location, p, v))
             }
         }
@@ -32,45 +30,22 @@ class FileSource(
     }
 
     companion object {
-        val supportedFileTypes = listOf(FileType.CONF, FileType.PROPERTIES)
-
-        fun getFileType(uri: URI): FileType {
-            val path = uri.path
-            return supportedFileTypes.find { ft ->
-                path.endsWith("." + ft.ext)
-            } ?: throw ConfigException("Config file type is not supported: $uri")
+        private val parsers: List<FileParser> = ServiceLoader.load(FileParser::class.java).toList()
+        val supportedFileTypes: List<String> = parsers.fold(mutableListOf()) { a, b ->
+            a.addAll(b.extNames)
+            a
         }
-    }
 
-    interface Parser {
-        fun parse(input: InputStream): Iterable<Pair<String, String>>
-    }
-
-    enum class FileType : Parser {
-        CONF {
-            override val ext: String
-                get() = "conf"
-
-            override fun parse(input: InputStream): Iterable<Pair<String, String>> {
-                val text = input.readAllBytes().toString(Charsets.UTF_8)
-                val parser = SimpleConfigParser.newParser(text)
-                return parser.parse()
+        fun getParser(uri: URI): FileParser {
+            val path = uri.path
+            val i = path.lastIndexOf('.')
+            if (i < 0) {
+                throw ConfigException("Config file type is not supported: $uri")
             }
-        },
-        PROPERTIES {
-            override val ext: String
-                get() = "properties"
-
-            override fun parse(input: InputStream): Iterable<Pair<String, String>> {
-                val props = Properties()
-                props.load(input)
-                return props.map { (k, v) ->
-                    k.toString() to v.toString()
-                }
-            }
-        };
-
-        abstract val ext: String
+            val ext = path.substring(i + 1)
+            return parsers.find { ext in it.extNames }
+                    ?: throw ConfigException("Config file type is not supported: $uri")
+        }
     }
 
     class Loader : ConfigSourceLoader {
