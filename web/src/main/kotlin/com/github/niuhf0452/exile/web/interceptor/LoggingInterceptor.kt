@@ -1,18 +1,18 @@
 package com.github.niuhf0452.exile.web.interceptor
 
 import com.github.niuhf0452.exile.common.IntegrationApi
+import com.github.niuhf0452.exile.common.Order
+import com.github.niuhf0452.exile.common.Orders
 import com.github.niuhf0452.exile.web.*
 import org.slf4j.LoggerFactory
 
 @IntegrationApi
+@Order(Orders.DEFAULT - 900)
 class LoggingInterceptor(
         private val maxEntityLogSize: Int,
         private val blacklist: Set<String>
 ) : WebInterceptor {
     private val log = LoggerFactory.getLogger(this::class.java)
-
-    override val order: Int
-        get() = -500
 
     override suspend fun onRequest(request: WebRequest<ByteArray>, handler: WebInterceptor.RequestHandler): WebResponse<ByteArray> {
         val domain = getTargetDomain(request)

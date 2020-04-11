@@ -12,8 +12,9 @@ class RouterImpl(
 ) : Router {
     private val log = LoggerFactory.getLogger(Router::class.java)
     private val routes = ConcurrentHashMap<RouteKey, Route>()
-    private var exceptionHandler: WebExceptionHandler = DefaultExceptionHandler()
     private val interceptors = InterceptorList(emptyList())
+    private var exceptionHandler: WebExceptionHandler = DefaultExceptionHandler()
+    private var entityTransformer: WebEntityTransformer? = null
 
     override fun addRoute(method: String, path: String, handler: WebHandler) {
         val p = if (path.startsWith('/')) path else "/$path"
@@ -49,8 +50,9 @@ class RouterImpl(
         return response
     }
 
-    override fun setExceptionHandler(handler: WebExceptionHandler) {
+    override fun setExceptionHandler(handler: WebExceptionHandler?) {
         exceptionHandler = when (handler) {
+            null -> DefaultExceptionHandler()
             is DefaultExceptionHandler -> handler
             else -> SafeExceptionHandler(handler)
         }
@@ -62,6 +64,10 @@ class RouterImpl(
 
     override fun removeInterceptor(cls: KClass<*>) {
         interceptors.remove(cls)
+    }
+
+    override fun setEntityTransformer(transformer: WebEntityTransformer?) {
+        entityTransformer = transformer
     }
 
     private suspend fun handleRequest(request: WebRequest<ByteArray>): WebResponse<ByteArray> {
@@ -127,17 +133,21 @@ class RouterImpl(
             serializer = EntitySerializers.getSerializer(contentType)
                     ?: throw FailureResponseException(406, "The media type is not supported: $contentType")
         }
-        return when (response.entity) {
+        val entity = when (val t = entityTransformer) {
+            null -> response.entity
+            else -> t.transform(response.entity)
+        }
+        return when (entity) {
             null, is ByteArray -> {
                 @Suppress("UNCHECKED_CAST")
                 response as WebResponse<ByteArray>
             }
             else -> {
-                val entity = serializer.serialize(response.entity, contentType)
+                val entity0 = serializer.serialize(entity, contentType)
                 if (contentType === defaultType) {
                     response.headers.set(CommonHeaders.ContentType, listOf(contentType.toString()))
                 }
-                WebResponse(response.statusCode, response.headers, entity)
+                WebResponse(response.statusCode, response.headers, entity0)
             }
         }
     }

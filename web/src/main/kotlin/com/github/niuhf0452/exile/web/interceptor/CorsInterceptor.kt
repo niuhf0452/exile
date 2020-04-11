@@ -1,6 +1,8 @@
 package com.github.niuhf0452.exile.web.interceptor
 
 import com.github.niuhf0452.exile.common.IntegrationApi
+import com.github.niuhf0452.exile.common.Order
+import com.github.niuhf0452.exile.common.Orders
 import com.github.niuhf0452.exile.web.CommonHeaders
 import com.github.niuhf0452.exile.web.WebInterceptor
 import com.github.niuhf0452.exile.web.WebRequest
@@ -8,6 +10,7 @@ import com.github.niuhf0452.exile.web.WebResponse
 import java.time.Duration
 
 @IntegrationApi
+@Order(Orders.DEFAULT - 800)
 class CorsInterceptor(
         private val allowedOrigins: Set<String> = emptySet(),
         private val allowedMethods: Set<String> = setOf("*"),
@@ -16,9 +19,6 @@ class CorsInterceptor(
         private val maxAge: Duration = Duration.ofSeconds(60 * 60),
         private val exposedHeaders: List<String> = listOf("*")
 ) : WebInterceptor {
-    override val order: Int
-        get() = -400
-
     override suspend fun onRequest(request: WebRequest<ByteArray>, handler: WebInterceptor.RequestHandler): WebResponse<ByteArray> {
         val origin = request.headers.get(CommonHeaders.Origin).firstOrNull()
                 ?: return handler.onRequest(request)

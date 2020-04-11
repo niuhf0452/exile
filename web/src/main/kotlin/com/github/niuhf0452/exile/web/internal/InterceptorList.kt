@@ -1,5 +1,6 @@
 package com.github.niuhf0452.exile.web.internal
 
+import com.github.niuhf0452.exile.common.Orders
 import com.github.niuhf0452.exile.web.WebInterceptor
 import com.github.niuhf0452.exile.web.WebRequest
 import com.github.niuhf0452.exile.web.WebResponse
@@ -18,7 +19,7 @@ class InterceptorList(list: List<WebInterceptor>) {
                     arr.add(i)
                 }
             }
-            arr.sortWith(Comparator { a, b -> a.order - b.order })
+            arr.sortWith(Orders.comparator())
             interceptors.set(arr)
         }
     }
@@ -30,7 +31,7 @@ class InterceptorList(list: List<WebInterceptor>) {
             val cls = interceptor::class
             arr.removeIf { cls.isInstance(it) }
             arr.add(interceptor)
-            arr.sortWith(Comparator { a, b -> a.order - b.order })
+            arr.sortWith(Orders.comparator())
         } while (!interceptors.compareAndSet(old, arr))
     }
 
