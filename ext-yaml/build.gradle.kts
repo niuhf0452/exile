@@ -16,6 +16,6 @@ dependencies {
     compileOnly(project(":${rootProject.name}-web"))
     testImplementation(bom.`log4j-slf4j-impl`)
     testImplementation(bom.`log4j-core`)
-    testCompileOnly(project(":${rootProject.name}-config"))
-    testCompileOnly(project(":${rootProject.name}-web"))
+    testCompile(project(":${rootProject.name}-config"))
+    testCompile(project(":${rootProject.name}-web"))
 }
