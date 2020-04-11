@@ -80,9 +80,6 @@ abstract class ClientAndServerTest(
             val called = AtomicBoolean(false)
             val client0 = clientBuilder
                     .addInterceptor(object : WebInterceptor {
-                        override val order: Int
-                            get() = 0
-
                         override suspend fun onRequest(request: WebRequest<ByteArray>, handler: WebInterceptor.RequestHandler): WebResponse<ByteArray> {
                             called.set(true)
                             return handler.onRequest(request)

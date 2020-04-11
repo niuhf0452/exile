@@ -194,9 +194,6 @@ class RouterTest : FunSpec({
         val called = AtomicBoolean(false)
         val router = RouterImpl(WebServer.Config())
         router.addInterceptor(object : WebInterceptor {
-            override val order: Int
-                get() = 0
-
             override suspend fun onRequest(request: WebRequest<ByteArray>, handler: WebInterceptor.RequestHandler): WebResponse<ByteArray> {
                 called.set(true)
                 return handler.onRequest(request)

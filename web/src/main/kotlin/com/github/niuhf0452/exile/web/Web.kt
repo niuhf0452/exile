@@ -129,9 +129,9 @@ interface Router {
      * Set an exception handler. The exception handler is called to handle any exceptions thrown
      * from handler and router internally.
      *
-     * @param handler An exception handler.
+     * @param handler An exception handler to set. Or null if need to reset to default exception handler.
      */
-    fun setExceptionHandler(handler: WebExceptionHandler)
+    fun setExceptionHandler(handler: WebExceptionHandler?)
 
     /**
      * Add an interceptor.
@@ -146,6 +146,13 @@ interface Router {
      * @param cls The class of interceptor to remove.
      */
     fun removeInterceptor(cls: KClass<*>)
+
+    /**
+     * Set or remove the entity transformer.
+     *
+     * @param transformer A transformer to set. Or null if need to remove transformer.
+     */
+    fun setEntityTransformer(transformer: WebEntityTransformer?)
 }
 
 /**
@@ -166,6 +173,16 @@ interface WebHandler {
 @PublicApi
 interface WebExceptionHandler {
     fun handle(exception: Throwable): WebResponse<ByteArray>
+}
+
+/**
+ * A transformer of [WebHandler] responded entity. It's usually used to standardize the response.
+ *
+ * @since 1.0
+ */
+@PublicApi
+interface WebEntityTransformer {
+    fun transform(value: Any?): Any?
 }
 
 /**
@@ -265,7 +282,7 @@ interface WebClient {
         fun sslContext(value: SSLContext): Builder
 
         @Fluent
-        fun addInterceptor(interceptor: WebInterceptor) : Builder
+        fun addInterceptor(interceptor: WebInterceptor): Builder
 
         fun build(): WebClient
     }
@@ -278,8 +295,6 @@ interface WebClient {
  */
 @PublicApi
 interface WebInterceptor {
-    val order: Int
-
     suspend fun onRequest(request: WebRequest<ByteArray>, handler: RequestHandler): WebResponse<ByteArray>
 
     interface RequestHandler {
