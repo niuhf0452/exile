@@ -1,6 +1,7 @@
 package com.github.niuhf0452.exile.common
 
 import kotlinx.serialization.*
+import kotlin.reflect.jvm.jvmName
 
 @PublicApi
 @Serializable(with = DataSize.Serializer::class)
@@ -77,7 +78,7 @@ class DataSize(val amount: Long, val unit: Unit) : Comparable<DataSize> {
     }
 
     class Serializer : KSerializer<DataSize> {
-        override val descriptor: SerialDescriptor = PrimitiveDescriptor("DataSize", PrimitiveKind.STRING)
+        override val descriptor: SerialDescriptor = PrimitiveDescriptor(DataSize::class.jvmName, PrimitiveKind.STRING)
 
         override fun deserialize(decoder: Decoder): DataSize {
             return parse(decoder.decodeString())

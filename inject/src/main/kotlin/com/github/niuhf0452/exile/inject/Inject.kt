@@ -48,15 +48,6 @@ interface Injector : InjectContext, AutoCloseable {
          * @since 1.0
          */
         fun getSingle(qualifiers: List<Annotation> = emptyList()): Binding
-
-        /**
-         * This is a convenient method for select a list of bindings from [BindingSet] by matching qualifiers.
-         *
-         * @param qualifiers The qualifiers to match with bindings.
-         * @return A list of bindings who has all the qualifiers.
-         * @since 1.0
-         */
-        fun getList(qualifiers: List<Annotation> = emptyList()): List<Binding>
     }
 
     /**

@@ -2,7 +2,9 @@ package com.github.niuhf0452.exile
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.tasks.testing.Test
+import org.gradle.kotlin.dsl.exclude
 import org.gradle.testing.jacoco.plugins.JacocoPluginExtension
 import org.gradle.testing.jacoco.tasks.JacocoReport
 
@@ -18,7 +20,10 @@ class ExileKotlinTestPlugin : Plugin<Project> {
         }
 
         dependencies.run {
-            add("testImplementation", Bom.`kotlintest-runner-junit5`)
+            add("testImplementation", Bom.`kotlintest-runner-junit5`).also {
+                (it as ModuleDependency).exclude("io.github.classgraph", "classgraph")
+            }
+            add("testImplementation", Bom.classgraph)
         }
     }
 

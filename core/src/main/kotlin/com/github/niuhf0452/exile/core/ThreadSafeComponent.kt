@@ -11,7 +11,7 @@ abstract class ThreadSafeComponent : Component {
         synchronized(stateLock) {
             when (state) {
                 RunState.NotStart -> setState(RunState.Starting(Thread.currentThread()))
-                is RunState.Starting, RunState.HalfStarted, RunState.Stopping -> Unit
+                is RunState.Starting, RunState.HalfStarted, RunState.Running, RunState.Stopping -> return
                 RunState.Stopped -> throw IllegalStateException("Component is stopped.")
             }
         }
@@ -39,16 +39,12 @@ abstract class ThreadSafeComponent : Component {
                     waitFor(RunState.HalfStarted)
                     setState(RunState.Stopping)
                 }
-                RunState.HalfStarted -> {
-                    setState(RunState.Stopped)
-                    return
-                }
                 RunState.Running -> setState(RunState.Stopping)
                 RunState.NotStart -> {
                     setState(RunState.Stopped)
                     return
                 }
-                RunState.Stopping -> {
+                RunState.HalfStarted, RunState.Stopping -> {
                     waitFor(RunState.Stopped)
                     return
                 }
@@ -61,7 +57,7 @@ abstract class ThreadSafeComponent : Component {
         }
     }
 
-    fun awaitTerminal() {
+    final override fun awaitTerminated() {
         synchronized(stateLock) {
             waitFor(RunState.Stopped)
         }

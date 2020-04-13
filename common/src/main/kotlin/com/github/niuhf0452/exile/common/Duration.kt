@@ -2,6 +2,7 @@ package com.github.niuhf0452.exile.common
 
 import kotlinx.serialization.*
 import java.util.concurrent.TimeUnit
+import kotlin.reflect.jvm.jvmName
 
 @PublicApi
 @Serializable(with = Duration.Serializer::class)
@@ -65,7 +66,7 @@ class Duration(val amount: Long, val unit: TimeUnit) : Comparable<Duration> {
     }
 
     class Serializer : KSerializer<Duration> {
-        override val descriptor: SerialDescriptor = PrimitiveDescriptor("Duration", PrimitiveKind.STRING)
+        override val descriptor: SerialDescriptor = PrimitiveDescriptor(Duration::class.jvmName, PrimitiveKind.STRING)
 
         override fun deserialize(decoder: Decoder): Duration {
             return parse(decoder.decodeString())

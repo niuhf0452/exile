@@ -40,7 +40,9 @@ class InstantiateBinder(
                              key: TypeKey,
                              context: Injector.BindingContext): Injector.Provider {
         val params = constructor.parameters.map { p ->
-            val bindings = context.getBindings(resolveType(p.type, key)).getList(p.getQualifiers())
+            val qualifiers = p.getQualifiers()
+            val bindings = context.getBindings(resolveType(p.type, key))
+                    .filter { it.qualifiers.containsAll(qualifiers) }
             when (bindings.size) {
                 0 -> {
                     if (!p.type.isMarkedNullable) {

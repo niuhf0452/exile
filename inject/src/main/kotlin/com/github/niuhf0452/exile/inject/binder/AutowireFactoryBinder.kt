@@ -54,7 +54,8 @@ class AutowireFactoryBinder : Injector.Binder {
 
     private fun makeProvider(function: KFunction<*>, context: Injector.BindingContext): MethodProvider {
         val params = function.parameters.map { p ->
-            val bindings = context.getBindings(TypeKey(p.type)).getList(p.getQualifiers())
+            val qualifiers = p.getQualifiers()
+            val bindings = context.getBindings(TypeKey(p.type)).filter { it.qualifiers.containsAll(qualifiers) }
             when (bindings.size) {
                 0 -> {
                     if (!p.type.isMarkedNullable) {

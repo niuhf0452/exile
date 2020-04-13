@@ -2,6 +2,7 @@ package com.github.niuhf0452.exile.common
 
 import kotlinx.serialization.*
 import java.net.URI
+import kotlin.reflect.jvm.jvmName
 
 @PublicApi
 @Serializable(with = URIString.Serializer::class)
@@ -23,7 +24,7 @@ data class URIString(
     }
 
     class Serializer : KSerializer<URIString> {
-        override val descriptor: SerialDescriptor = PrimitiveDescriptor("Duration", PrimitiveKind.STRING)
+        override val descriptor: SerialDescriptor = PrimitiveDescriptor(URIString::class.jvmName, PrimitiveKind.STRING)
 
         override fun deserialize(decoder: Decoder): URIString {
             return parse(decoder.decodeString())

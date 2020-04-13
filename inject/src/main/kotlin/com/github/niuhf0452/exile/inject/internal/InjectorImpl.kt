@@ -276,10 +276,6 @@ class InjectorImpl(
             throw InjectException("No binding, it's empty BindingSet")
         }
 
-        override fun getList(qualifiers: List<Annotation>): List<Injector.Binding> {
-            return emptyList()
-        }
-
         override fun iterator(): Iterator<Injector.Binding> {
             return emptyList<Injector.Binding>().iterator()
         }
@@ -293,14 +289,6 @@ class InjectorImpl(
                 throw InjectException("No binding match the qualifiers")
             }
             return binding
-        }
-
-        override fun getList(qualifiers: List<Annotation>): List<Injector.Binding> {
-            return if (binding.qualifiers.containsAll(qualifiers)) {
-                listOf(binding)
-            } else {
-                emptyList()
-            }
         }
 
         override fun iterator(): Iterator<Injector.Binding> {
@@ -341,10 +329,6 @@ class InjectorImpl(
                 }
             }
             return null
-        }
-
-        override fun getList(qualifiers: List<Annotation>): List<Injector.Binding> {
-            return filter { it.qualifiers.containsAll(qualifiers) }
         }
 
         override fun iterator(): Iterator<Injector.Binding> {

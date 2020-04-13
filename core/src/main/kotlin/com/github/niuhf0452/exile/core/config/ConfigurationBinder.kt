@@ -1,12 +1,8 @@
-package com.github.niuhf0452.exile.config.inject
+package com.github.niuhf0452.exile.core.config
 
-import com.github.niuhf0452.exile.common.IntegrationApi
-import com.github.niuhf0452.exile.config.Config
 import com.github.niuhf0452.exile.config.ConfigMapper
 import com.github.niuhf0452.exile.config.Configuration
-import com.github.niuhf0452.exile.config.autoConfigure
 import com.github.niuhf0452.exile.inject.Injector
-import com.github.niuhf0452.exile.inject.InjectorAutoLoader
 import com.github.niuhf0452.exile.inject.TypeKey
 import com.github.niuhf0452.exile.inject.internal.getQualifiers
 import kotlin.reflect.full.findAnnotation
@@ -15,7 +11,6 @@ import kotlin.reflect.full.findAnnotation
  * This is a Injector Binder for ConfigMapper.Mapping.
  * Don't reference to this class directly, because we don't want hard dependency of inject library.
  */
-@IntegrationApi
 class ConfigurationBinder(
         private val mapper: ConfigMapper
 ) : Injector.Binder {
@@ -43,14 +38,6 @@ class ConfigurationBinder(
     ) : Injector.Provider {
         override fun getInstance(): Any {
             return mapping.receiver
-        }
-    }
-
-    class Loader : InjectorAutoLoader {
-        override fun getBinders(): List<Injector.Binder> {
-            val config = Config.newBuilder().autoConfigure().build()
-            val mapper = ConfigMapper.newMapper(config)
-            return listOf(ConfigurationBinder(mapper))
         }
     }
 }
