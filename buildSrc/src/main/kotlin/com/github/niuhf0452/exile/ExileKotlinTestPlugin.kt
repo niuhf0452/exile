@@ -4,6 +4,8 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.tasks.testing.Test
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.gradle.kotlin.dsl.exclude
 import org.gradle.testing.jacoco.plugins.JacocoPluginExtension
 import org.gradle.testing.jacoco.tasks.JacocoReport
@@ -24,6 +26,13 @@ class ExileKotlinTestPlugin : Plugin<Project> {
                 (it as ModuleDependency).exclude("io.github.classgraph", "classgraph")
             }
             add("testImplementation", Bom.classgraph)
+        }
+
+        tasks.withType(Test::class.java) {
+            testLogging {
+                events = setOf(TestLogEvent.PASSED, TestLogEvent.SKIPPED, TestLogEvent.FAILED)
+                exceptionFormat = TestExceptionFormat.FULL
+            }
         }
     }
 
