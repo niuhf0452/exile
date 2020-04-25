@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     environment:
-      _JAVA_OPTIONS: "-Xmx3g"
+      _JAVA_OPTIONS: "-Xmx2048m"
       GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dkotlin.caching.enabled=false"
     docker:
       - image: openjdk:11-jdk-stretch
