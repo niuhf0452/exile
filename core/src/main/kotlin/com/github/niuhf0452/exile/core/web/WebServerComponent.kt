@@ -30,13 +30,13 @@ class WebServerComponent(
                 keepAlive = config.keepAlive,
                 serverHeader = config.serverHeader
         )
-        val dispatcher = Executors.newFixedThreadPool(config.threadSize, WebThreadGroup())
-                .asCoroutineDispatcher()
         val router = RouterImpl(conf)
         injector.getBindings(TypeKey(RouterConfigurator::class)).forEach { binding ->
             val configurator = binding.getInstance() as RouterConfigurator
             configurator.config(router)
         }
+        val dispatcher = Executors.newFixedThreadPool(config.threadSize, WebThreadGroup())
+                .asCoroutineDispatcher()
         server = factory.startServer(conf, dispatcher, router)
     }
 

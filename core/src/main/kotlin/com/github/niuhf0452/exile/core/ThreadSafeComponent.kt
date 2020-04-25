@@ -23,11 +23,15 @@ abstract class ThreadSafeComponent : Component {
                 }
                 setState(RunState.Running)
             }
-        } catch (ex: InterruptedException) {
+        } catch (ex: Throwable) {
             synchronized(stateLock) {
                 setState(RunState.HalfStarted)
             }
-            throw Component.StopException
+            safeStop()
+            synchronized(stateLock) {
+                setState(RunState.Stopped)
+            }
+            throw ex
         }
     }
 
@@ -36,8 +40,8 @@ abstract class ThreadSafeComponent : Component {
             when (val s = state) {
                 is RunState.Starting -> {
                     s.thread.interrupt()
-                    waitFor(RunState.HalfStarted)
-                    setState(RunState.Stopping)
+                    waitFor(RunState.Stopped)
+                    return
                 }
                 RunState.Running -> setState(RunState.Stopping)
                 RunState.NotStart -> {

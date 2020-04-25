@@ -14,7 +14,8 @@ class AutowireRouterConfigurator(
         private val injector: Injector
 ) : RouterConfigurator {
     override fun config(router: Router) {
-        val corsConfig = injector.getInstance(WebServerConfiguration.CorsConfiguration::class)
+        val config = injector.getInstance(WebServerConfiguration::class)
+        val corsConfig = config.cors
         if (corsConfig.enable) {
             router.addInterceptor(CorsInterceptor(
                     allowedOrigins = corsConfig.allowedOrigins.toSet(),
@@ -25,26 +26,26 @@ class AutowireRouterConfigurator(
                     exposedHeaders = corsConfig.exposedHeaders.toList()
             ))
         }
-        val loggingConfig = injector.getInstance(WebServerConfiguration.LoggingConfiguration::class)
+        val loggingConfig = config.logging
         if (loggingConfig.enable) {
             router.addInterceptor(LoggingInterceptor(
                     maxEntityLogSize = loggingConfig.maxEntityLogSize.inBytes().toInt(),
                     blacklist = loggingConfig.blacklist.toSet()
             ))
         }
-        val contextConfig = injector.getInstance(WebServerConfiguration.ContextConfiguration::class)
+        val contextConfig = config.context
         if (contextConfig.enable) {
             router.addInterceptor(ServerContextInterceptor(
                     headerName = contextConfig.headerName
             ))
         }
-        val transformerConfig = injector.getInstance(WebServerConfiguration.TransformerConfiguration::class)
+        val transformerConfig = config.transformer
         if (transformerConfig.enable) {
             val transformer = injector.getInstance(WebEntityTransformer::class,
                     listOf(Qualifiers.named(transformerConfig.type)))
             router.setEntityTransformer(transformer)
         }
-        val handlerConfig = injector.getInstance(WebServerConfiguration.HandlerConfiguration::class)
+        val handlerConfig = config.handler
         if (handlerConfig.enable) {
             val scanner = injector.getInstance(ClassScanner::class)
             val adapter = InjectorAdapter(injector)

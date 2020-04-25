@@ -78,10 +78,7 @@ interface Component {
      * Start a component.
      *
      * This method shouldn't throw exception if the component has already started.
-     *
-     * @throws StopException Throw if component already stopped.
      */
-    @Throws(StopException::class)
     fun start()
 
     /**
@@ -96,8 +93,6 @@ interface Component {
      * Wait for terminating.
      */
     fun awaitTerminated()
-
-    object StopException : RuntimeException("Request stop before started.")
 }
 
 /**

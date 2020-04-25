@@ -41,7 +41,8 @@ class ApplicationImpl : ThreadSafeComponent(), Application {
             .sortedWith(Orders.comparator())
 
     override fun safeStart() {
-        injector.getBindings(object : TypeLiteral<Application.Listener<*>>() {}.typeKey).forEach { binding ->
+        val listenerType = object : TypeLiteral<Application.Listener<ApplicationEvent>>() {}.typeKey
+        injector.getBindings(listenerType).forEach { binding ->
             addListener(binding.getInstance() as Application.Listener<*>)
         }
         components.forEach { component ->
