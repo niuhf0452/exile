@@ -11,5 +11,5 @@ cache:
     - $HOME/.gradle/wrapper/
 install: skip
 script:
-  - ./gradlew clean build --parallel
-  - ./gradlew jacocoTestReport sonarqube
+  - ./gradlew clean build --parallel --no-daemon --build-cache --configure-on-demand
+  - ./gradlew jacocoTestReport sonarqube --no-daemon --configure-on-demand

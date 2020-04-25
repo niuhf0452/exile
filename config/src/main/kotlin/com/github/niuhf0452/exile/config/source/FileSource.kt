@@ -37,7 +37,7 @@ class FileSource(
         }
 
         fun getParser(uri: URI): FileParser {
-            val path = uri.path
+            val path = uri.toString()
             val i = path.lastIndexOf('.')
             if (i < 0) {
                 throw ConfigException("Config file type is not supported: $uri")
